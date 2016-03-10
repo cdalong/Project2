@@ -41,6 +41,12 @@ typedef unsigned int MUTEX;      // always non-zero if it is valid
 typedef unsigned char PRIORITY;
 typedef unsigned int EVENT;      // always non-zero if it is valid
 typedef unsigned int TICK;
+const unsigned int PT;
+const unsigned int PPP[]; 
+static uint8_t slot_task_finished = 0; // indicates if peridoic task has run
+
+
+
 //typedef unsigned char PRIORITY;
 
 
@@ -156,6 +162,26 @@ static  ProcessDescriptor Process[MAXPROCESS];
   * The process descriptor of the currently RUNNING task.
   */
 volatile static  ProcessDescriptor* Cp; 
+static ProcessDescriptor  task_desc[MAXPROCESS + 1];
+/** The special "idle task" at the end of the descriptors array. */
+static ProcessDescriptor* idle_task = &task_desc[MAXPROCESS];
+
+static ProcessDescriptor* current_task;
+//Data from currently running task
+
+static queue_t Dead_tasks; // terminated tasks
+
+static queue_t Round_Robin;// round robin task queue
+
+static queue_t system_tasks; // system task queue
+
+static queue_t sleeping_tasks; // sleeping task queue
+
+static queue_t event_queue; // tasks waiting on events
+
+static volatile uint8_t ticks_remaining; // time remaining in current slot?
+
+
 
 /** 
   * Since this is a "full-served" model, the kernel is executing using its own
@@ -260,11 +286,75 @@ static void Kernel_Create_Task( voidfuncptr f )
 
 }
 
+static void enqueue(queue_t* input_queue, ProcessDescriptor* input_process){
+	
+	input_process->next = NULL;
+	
+	if(input_queue->head == NULL){
+		
+		input_queue->head = input_process;
+		input_queue->tail = input_process;
+	}
+	else{
+		
+		input_queue->tail->next = input_process;
+		input_queue->tail = input_process;
+		
+	}
+	
+	
+}
+
+
+static ProcessDescriptor* dequeue(queue_t* input_queue){
+	
+	ProcessDescriptor* processpointer = input_queue->head;
+	
+	if(input_queue->head != NULL)
+	{
+		input_queue->head = input_queue->head->next;
+		processpointer->next = NULL;
+		
+	}
+	
+	return processpointer;
+}
+
+static void new_dispatch()
+{
+	if (current_task != RUNNING || current_task == idle_task ){
+		
+		if (system_tasks.head != NULL)
+		{
+			current_task = dequeue(&system_tasks);
+		}
+		else if (!slot_task_finished && PT > 0 ) // There is some more to add here, but I don't know what they're doing
+		{
+			// Current task equals something from the PPP array
+			
+		}
+		
+		else if(Round_Robin.head != NULL){
+			
+			current_task = dequeue(&Round_Robin);
+		}
+		else{
+		
+			current_task = idle_task;
+		}
+		
+	}
+	current_task->state = RUNNING;
+	
+}
+
 
 /**
   * This internal kernel function is a part of the "scheduler". It chooses the 
   * next task to run, i.e., Cp.
   */
+
+
 static void Dispatch()
 {
      /* find the next READY task
@@ -447,39 +537,7 @@ void Task_Sleep(TICK t){
 	
 }
 
-static void enqueue(queue_t* input_queue, ProcessDescriptor* input_process){
-	
-	input_process->next = NULL;
-	
-	if(input_queue->head == NULL){
-		
-		input_queue->head = input_process;
-		input_queue->tail = input_process;
-	}
-	else{
-		
-		input_queue->tail->next = input_process;
-		input_queue->tail = input_process;
-		
-	}
-	
-	
-}
 
-
-static ProcessDescriptor* dequeue(queue_t* input_queue){
-	
-	ProcessDescriptor* processpointer = input_queue->head;
-	
-	if(input_queue->head != NULL)
-	{
-		input_queue->head = input_queue->head->next;
-		processpointer->next = NULL;
-		
-	}
-	
-	return processpointer;
-}
 /*============
   * A Simple Test 
   *============

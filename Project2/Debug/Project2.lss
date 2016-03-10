@@ -7,7 +7,7 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, DATA
   1 .text         000005c6  00000000  00000000  00000074  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .bss          0000043c  00800200  00800200  0000063a  2**0
+  2 .bss          00000440  00800200  00800200  0000063a  2**0
                   ALLOC
   3 .comment      00000030  00000000  00000000  0000063a  2**0
                   CONTENTS, READONLY
@@ -15,19 +15,19 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY
   5 .debug_aranges 000000b8  00000000  00000000  000006b0  2**3
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_info   000006a2  00000000  00000000  00000768  2**0
+  6 .debug_info   0000079c  00000000  00000000  00000768  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_abbrev 00000281  00000000  00000000  00000e0a  2**0
+  7 .debug_abbrev 000002c2  00000000  00000000  00000f04  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_line   00000497  00000000  00000000  0000108b  2**0
+  8 .debug_line   00000497  00000000  00000000  000011c6  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_frame  00000164  00000000  00000000  00001524  2**2
+  9 .debug_frame  00000164  00000000  00000000  00001660  2**2
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_str    0000037a  00000000  00000000  00001688  2**0
+ 10 .debug_str    0000040f  00000000  00000000  000017c4  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_loc    000003f7  00000000  00000000  00001a02  2**0
+ 11 .debug_loc    000003f7  00000000  00000000  00001bd3  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_ranges 00000088  00000000  00000000  00001df9  2**0
+ 12 .debug_ranges 00000088  00000000  00000000  00001fca  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -168,7 +168,7 @@ Disassembly of section .text:
   fc:	1d 92       	st	X+, r1
 
 000000fe <.do_clear_bss_start>:
-  fe:	ac 33       	cpi	r26, 0x3C	; 60
+  fe:	a0 34       	cpi	r26, 0x40	; 64
  100:	b2 07       	cpc	r27, r18
  102:	e1 f7       	brne	.-8      	; 0xfc <.do_clear_bss_loop>
  104:	4f d2       	rcall	.+1182   	; 0x5a4 <main>
@@ -229,17 +229,17 @@ Exit_Kernel:
         in   r31, SPH
  154:	fe b7       	in	r31, 0x3e	; 62
         sts  KernelSp, r30
- 156:	e0 93 3a 06 	sts	0x063A, r30
+ 156:	e0 93 3e 06 	sts	0x063E, r30
         sts  KernelSp+1, r31
- 15a:	f0 93 3b 06 	sts	0x063B, r31
+ 15a:	f0 93 3f 06 	sts	0x063F, r31
         /*
           * We are now ready to restore Cp's context, i.e.,
           * switching the H/W stack pointer to CurrentSp.
           */ 
         lds  r30, CurrentSp
- 15e:	e0 91 38 06 	lds	r30, 0x0638
+ 15e:	e0 91 3c 06 	lds	r30, 0x063C
         lds  r31, CurrentSp+1
- 162:	f0 91 39 06 	lds	r31, 0x0639
+ 162:	f0 91 3d 06 	lds	r31, 0x063D
         out  SPL, r30
  166:	ed bf       	out	0x3d, r30	; 61
         out  SPH, r31
@@ -340,17 +340,17 @@ Enter_Kernel:
         in   r31, SPH
  1fe:	fe b7       	in	r31, 0x3e	; 62
         sts  CurrentSp, r30
- 200:	e0 93 38 06 	sts	0x0638, r30
+ 200:	e0 93 3c 06 	sts	0x063C, r30
         sts  CurrentSp+1, r31
- 204:	f0 93 39 06 	sts	0x0639, r31
+ 204:	f0 93 3d 06 	sts	0x063D, r31
         /*
           * We are now ready to restore kernel's context, i.e.,
           * switching the H/W stack pointer back to KernelSp.
           */ 
         lds  r30, KernelSp
- 208:	e0 91 3a 06 	lds	r30, 0x063A
+ 208:	e0 91 3e 06 	lds	r30, 0x063E
         lds  r31, KernelSp+1
- 20c:	f0 91 3b 06 	lds	r31, 0x063B
+ 20c:	f0 91 3f 06 	lds	r31, 0x063F
         out  SPL, r30
  210:	ed bf       	out	0x3d, r30	; 61
         out  SPH, r31
@@ -451,8 +451,8 @@ void Task_Sleep(TICK t){
  2bc:	e0 93 06 02 	sts	0x0206, r30
  2c0:	80 81       	ld	r24, Z
  2c2:	91 81       	ldd	r25, Z+1	; 0x01
- 2c4:	90 93 39 06 	sts	0x0639, r25
- 2c8:	80 93 38 06 	sts	0x0638, r24
+ 2c4:	90 93 3d 06 	sts	0x063D, r25
+ 2c8:	80 93 3c 06 	sts	0x063C, r24
  2cc:	ee 5f       	subi	r30, 0xFE	; 254
  2ce:	fe 4f       	sbci	r31, 0xFE	; 254
  2d0:	82 e0       	ldi	r24, 0x02	; 2
@@ -635,13 +635,13 @@ void Task_Sleep(TICK t){
  45e:	1c 92       	st	X, r1
  460:	80 81       	ld	r24, Z
  462:	91 81       	ldd	r25, Z+1	; 0x01
- 464:	90 93 39 06 	sts	0x0639, r25
- 468:	80 93 38 06 	sts	0x0638, r24
+ 464:	90 93 3d 06 	sts	0x063D, r25
+ 468:	80 93 3c 06 	sts	0x063C, r24
  46c:	4e de       	rcall	.-868    	; 0x10a <CSwitch>
  46e:	e0 91 06 02 	lds	r30, 0x0206
  472:	f0 91 07 02 	lds	r31, 0x0207
- 476:	80 91 38 06 	lds	r24, 0x0638
- 47a:	90 91 39 06 	lds	r25, 0x0639
+ 476:	80 91 3c 06 	lds	r24, 0x063C
+ 47a:	90 91 3d 06 	lds	r25, 0x063D
  47e:	91 83       	std	Z+1, r25	; 0x01
  480:	80 83       	st	Z, r24
  482:	df 01       	movw	r26, r30
