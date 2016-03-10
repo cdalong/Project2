@@ -1,5 +1,6 @@
 #include <string.h>
-#include "os.h"
+//#include "os.h"
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 /**
@@ -35,6 +36,11 @@ typedef void (*voidfuncptr) (void);      /* pointer to void f(void) */
 
 #define WORKSPACE     256
 #define MAXPROCESS   4
+typedef unsigned int PID;        // always non-zero if it is valid
+typedef unsigned int MUTEX;      // always non-zero if it is valid
+typedef unsigned char PRIORITY;
+typedef unsigned int EVENT;      // always non-zero if it is valid
+typedef unsigned int TICK;
 //typedef unsigned char PRIORITY;
 
 
@@ -57,6 +63,7 @@ typedef void (*voidfuncptr) (void);      /* pointer to void f(void) */
   * again, but Cp is not running any more. 
   * (See file "switch.S" for details.)
   */
+void Task_Terminate(void);
 extern void CSwitch();
 extern void Exit_Kernel();    /* this is the same as CSwitch() */
 
@@ -333,7 +340,10 @@ static void Next_Kernel_Request()
 void OS_Init() 
 {
    int x;
-
+	DDRA = (1<<PA0);
+	
+	DDRA = (1<<PA1);
+	PORTA &= ~(1<<PA1);
    Tasks = 0;
    KernelActive = 0;
    NextP = 0;
@@ -367,7 +377,7 @@ void OS_Start()
   * each task gives up its share of the processor voluntarily by calling
   * Task_Next().
   */
-PID Task_Create( voidfuncptr f, PRIORITY py, int arg)
+void Task_Create( voidfuncptr f, PRIORITY py, int arg)
 {
    if (KernelActive ) {
      Disable_Interrupt();
@@ -479,26 +489,19 @@ static ProcessDescriptor* dequeue(queue_t* input_queue){
   * A cooperative "Ping" task.
   * Added testing code for LEDs.
   */
-void Ping() 
+void Ping()
 {
-  int  x ;
-  PORTB |= (1<< DDB7);
-  PORTL |= (1<< DDL1);
-  //init_LED_D5();
-  for(;;){
-  	//LED on
-	//enable_LED(LED_D5_GREEN);
-	
-    for( x=0; x < 32000; ++x );   /* do nothing */
-	for( x=0; x < 32000; ++x );   /* do nothing */
-	for( x=0; x < 32000; ++x );   /* do nothing */
-	//LED on
-	//LED off
-	//disable_LEDs();  
-	  
-    /* printf( "*" );  */
-    //Task_Next();
-  }
+	//Enable_Interrupt();
+	int  x ;
+	for(;;){
+		//LED on
+		//PORTA |= (1<<PA0);
+		PORTA &= ~(1<<PA0);
+		for( x=0; x < 32000; ++x );   /* do nothing */
+		for( x=0; x < 32000; ++x );   /* do nothing */
+		for( x=0; x < 32000; ++x );   /* do nothing */
+		Task_Next();
+	}
 }
 
 
@@ -506,27 +509,20 @@ void Ping()
   * A cooperative "Pong" task.
   * Added testing code for LEDs.
   */
-void Pong() 
+void Pong()
 {
-  int  x;
-  //init_LED_D2();
-  for(;;) {
-	//LED on
-	//enable_LED(LED_D2_GREEN);
-	PORTB &= ~(1<< DDB7);
-	PORTL &= ~(1<<DDL1);
-    for( x=0; x < 32000; ++x );   /* do nothing */
-	for( x=0; x < 32000; ++x );   /* do nothing */
-	for( x=0; x < 32000; ++x );   /* do nothing */
-	 // LED off
-	//LED off
-	//disable_LEDs();
+	//Enable_Interrupt();
+	int  x;
+	for(;;) {
+		//LED off
+		//PORTA &= ~(1<<PA0);
+		PORTA |= (1<<PA0);
 
-    /* printf( "." );  */
-   // Task_Next();
-	
-  }
-  
+		for( x=0; x < 32000; ++x );   /* do nothing */
+		for( x=0; x < 32000; ++x );   /* do nothing */
+		for( x=0; x < 32000; ++x );   /* do nothing */
+		Task_Next();
+	}
 }
 
 
@@ -538,14 +534,16 @@ void main()
 {
 	
    OS_Init();
-   //Task_Create( Pong );
-   //Task_Create( Ping );
+   Task_Create( Ping, 8, 8 );
+   
+   Task_Create( Pong, 8, 8 );
+   
   
    OS_Start();
  
     
    
-  
+
    
 
   

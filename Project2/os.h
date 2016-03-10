@@ -22,7 +22,7 @@ typedef unsigned int TICK;
 // void OS_Init(void);      redefined as main()
 void OS_Abort(void);
 
-PID  Task_Create( void (*f)(void), PRIORITY py, int arg);
+//void  Task_Create( void (*f)(void), PRIORITY py, int arg);
 void Task_Terminate(void);
 void Task_Yield(void);
 int  Task_GetArg(void);
