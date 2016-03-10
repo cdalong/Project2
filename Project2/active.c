@@ -34,8 +34,8 @@
 typedef void (*voidfuncptr) (void);      /* pointer to void f(void) */ 
 
 #define WORKSPACE     256
- #define MAXPROCESS   4
-  typedef unsigned char PRIORITY;
+#define MAXPROCESS   4
+//typedef unsigned char PRIORITY;
 
 
 /*===========
@@ -61,7 +61,7 @@ extern void CSwitch();
 extern void Exit_Kernel();    /* this is the same as CSwitch() */
 
 /* Prototype */
-void Task_Terminate(void);
+//void Task_Terminate(void);
 
 /** 
   * This external function could be implemented in two ways:
@@ -121,7 +121,8 @@ typedef struct ProcessDescriptor
    unsigned char workSpace[WORKSPACE]; 
    
    PROCESS_STATES state;
-   PRIORITY p;
+   PRIORITY original; //priority of created function
+   PRIORITY inherited; // Inherited for inversion problem
    voidfuncptr  code;   /* function to be executed as a task */
    KERNEL_REQUEST_TYPE request;
 } PD;

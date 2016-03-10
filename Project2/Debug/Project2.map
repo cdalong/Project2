@@ -361,7 +361,7 @@ END GROUP
                 0x00800200                _edata = .
                 0x00800200                PROVIDE (__data_end, .)
 
-.bss            0x00800200      0x428
+.bss            0x00800200      0x42c
                 0x00800200                PROVIDE (__bss_start, .)
  *(.bss)
  *(.bss*)
@@ -370,21 +370,21 @@ END GROUP
                 0x00800202        0x2 active.o
  .bss.NextP     0x00800204        0x2 active.o
  .bss.Cp        0x00800206        0x2 active.o
- .bss.Process   0x00800208      0x41c active.o
+ .bss.Process   0x00800208      0x420 active.o
  *(COMMON)
- COMMON         0x00800624        0x4 active.o
-                0x00800624                CurrentSp
-                0x00800626                KernelSp
-                0x00800628                PROVIDE (__bss_end, .)
+ COMMON         0x00800628        0x4 active.o
+                0x00800628                CurrentSp
+                0x0080062a                KernelSp
+                0x0080062c                PROVIDE (__bss_end, .)
                 0x00000532                __data_load_start = LOADADDR (.data)
                 0x00000532                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x00800628        0x0
-                0x00800628                PROVIDE (__noinit_start, .)
+.noinit         0x0080062c        0x0
+                0x0080062c                PROVIDE (__noinit_start, .)
  *(.noinit*)
-                0x00800628                PROVIDE (__noinit_end, .)
-                0x00800628                _end = .
-                0x00800628                PROVIDE (__heap_start, .)
+                0x0080062c                PROVIDE (__noinit_end, .)
+                0x0080062c                _end = .
+                0x0080062c                PROVIDE (__heap_start, .)
 
 .eeprom         0x00810000        0x0
  *(.eeprom*)
@@ -458,10 +458,10 @@ END GROUP
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x00000000      0x605
+.debug_info     0x00000000      0x61f
  *(.debug_info .gnu.linkonce.wi.*)
- .debug_info    0x00000000      0x58e active.o
- .debug_info    0x0000058e       0x77 cswitch.o
+ .debug_info    0x00000000      0x5a8 active.o
+ .debug_info    0x000005a8       0x77 cswitch.o
 
 .debug_abbrev   0x00000000      0x292
  *(.debug_abbrev)
@@ -477,10 +477,10 @@ END GROUP
  *(.debug_frame)
  .debug_frame   0x00000000      0x164 active.o
 
-.debug_str      0x00000000      0x35d
+.debug_str      0x00000000      0x36f
  *(.debug_str)
- .debug_str     0x00000000      0x35d active.o
-                                0x39f (size before relaxing)
+ .debug_str     0x00000000      0x36f active.o
+                                0x3b1 (size before relaxing)
 
 .debug_loc      0x00000000      0x3f7
  *(.debug_loc)

@@ -7,7 +7,7 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, DATA
   1 .text         00000532  00000000  00000000  00000074  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .bss          00000428  00800200  00800200  000005a6  2**0
+  2 .bss          0000042c  00800200  00800200  000005a6  2**0
                   ALLOC
   3 .comment      00000030  00000000  00000000  000005a6  2**0
                   CONTENTS, READONLY
@@ -15,19 +15,19 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY
   5 .debug_aranges 000000b8  00000000  00000000  00000618  2**3
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_info   00000605  00000000  00000000  000006d0  2**0
+  6 .debug_info   0000061f  00000000  00000000  000006d0  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_abbrev 00000292  00000000  00000000  00000cd5  2**0
+  7 .debug_abbrev 00000292  00000000  00000000  00000cef  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_line   0000048b  00000000  00000000  00000f67  2**0
+  8 .debug_line   0000048b  00000000  00000000  00000f81  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_frame  00000164  00000000  00000000  000013f4  2**2
+  9 .debug_frame  00000164  00000000  00000000  0000140c  2**2
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_str    0000035d  00000000  00000000  00001558  2**0
+ 10 .debug_str    0000036f  00000000  00000000  00001570  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_loc    000003f7  00000000  00000000  000018b5  2**0
+ 11 .debug_loc    000003f7  00000000  00000000  000018df  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_ranges 00000088  00000000  00000000  00001cac  2**0
+ 12 .debug_ranges 00000088  00000000  00000000  00001cd6  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -168,7 +168,7 @@ Disassembly of section .text:
   fc:	1d 92       	st	X+, r1
 
 000000fe <.do_clear_bss_start>:
-  fe:	a8 32       	cpi	r26, 0x28	; 40
+  fe:	ac 32       	cpi	r26, 0x2C	; 44
  100:	b2 07       	cpc	r27, r18
  102:	e1 f7       	brne	.-8      	; 0xfc <.do_clear_bss_loop>
  104:	11 d2       	rcall	.+1058   	; 0x528 <main>
@@ -229,17 +229,17 @@ Exit_Kernel:
         in   r31, SPH
  154:	fe b7       	in	r31, 0x3e	; 62
         sts  KernelSp, r30
- 156:	e0 93 26 06 	sts	0x0626, r30
+ 156:	e0 93 2a 06 	sts	0x062A, r30
         sts  KernelSp+1, r31
- 15a:	f0 93 27 06 	sts	0x0627, r31
+ 15a:	f0 93 2b 06 	sts	0x062B, r31
         /*
           * We are now ready to restore Cp's context, i.e.,
           * switching the H/W stack pointer to CurrentSp.
           */ 
         lds  r30, CurrentSp
- 15e:	e0 91 24 06 	lds	r30, 0x0624
+ 15e:	e0 91 28 06 	lds	r30, 0x0628
         lds  r31, CurrentSp+1
- 162:	f0 91 25 06 	lds	r31, 0x0625
+ 162:	f0 91 29 06 	lds	r31, 0x0629
         out  SPL, r30
  166:	ed bf       	out	0x3d, r30	; 61
         out  SPH, r31
@@ -340,17 +340,17 @@ Enter_Kernel:
         in   r31, SPH
  1fe:	fe b7       	in	r31, 0x3e	; 62
         sts  CurrentSp, r30
- 200:	e0 93 24 06 	sts	0x0624, r30
+ 200:	e0 93 28 06 	sts	0x0628, r30
         sts  CurrentSp+1, r31
- 204:	f0 93 25 06 	sts	0x0625, r31
+ 204:	f0 93 29 06 	sts	0x0629, r31
         /*
           * We are now ready to restore kernel's context, i.e.,
           * switching the H/W stack pointer back to KernelSp.
           */ 
         lds  r30, KernelSp
- 208:	e0 91 26 06 	lds	r30, 0x0626
+ 208:	e0 91 2a 06 	lds	r30, 0x062A
         lds  r31, KernelSp+1
- 20c:	f0 91 27 06 	lds	r31, 0x0627
+ 20c:	f0 91 2b 06 	lds	r31, 0x062B
         out  SPL, r30
  210:	ed bf       	out	0x3d, r30	; 61
         out  SPH, r31
@@ -410,7 +410,7 @@ Enter_Kernel:
     for( x=0; x < 32000; ++x );   /* do nothing */
 	for( x=0; x < 32000; ++x );   /* do nothing */
 	for( x=0; x < 32000; ++x );   /* do nothing */
- 25e:	27 e0       	ldi	r18, 0x07	; 7
+ 25e:	28 e0       	ldi	r18, 0x08	; 8
  260:	31 e0       	ldi	r19, 0x01	; 1
  262:	0b c0       	rjmp	.+22     	; 0x27a <Dispatch+0x1c>
  264:	80 91 04 02 	lds	r24, 0x0204
@@ -436,7 +436,7 @@ Enter_Kernel:
  298:	29 f7       	brne	.-54     	; 0x264 <Dispatch+0x6>
  29a:	20 91 04 02 	lds	r18, 0x0204
  29e:	30 91 05 02 	lds	r19, 0x0205
- 2a2:	87 e0       	ldi	r24, 0x07	; 7
+ 2a2:	88 e0       	ldi	r24, 0x08	; 8
  2a4:	91 e0       	ldi	r25, 0x01	; 1
  2a6:	28 9f       	mul	r18, r24
  2a8:	f0 01       	movw	r30, r0
@@ -451,8 +451,8 @@ Enter_Kernel:
  2bc:	e0 93 06 02 	sts	0x0206, r30
  2c0:	80 81       	ld	r24, Z
  2c2:	91 81       	ldd	r25, Z+1	; 0x01
- 2c4:	90 93 25 06 	sts	0x0625, r25
- 2c8:	80 93 24 06 	sts	0x0624, r24
+ 2c4:	90 93 29 06 	sts	0x0629, r25
+ 2c8:	80 93 28 06 	sts	0x0628, r24
  2cc:	ee 5f       	subi	r30, 0xFE	; 254
  2ce:	fe 4f       	sbci	r31, 0xFE	; 254
  2d0:	82 e0       	ldi	r24, 0x02	; 2
@@ -474,7 +474,7 @@ Enter_Kernel:
  2f8:	f8 94       	cli
  2fa:	e0 91 06 02 	lds	r30, 0x0206
  2fe:	f0 91 07 02 	lds	r31, 0x0207
- 302:	ea 5f       	subi	r30, 0xFA	; 250
+ 302:	e9 5f       	subi	r30, 0xF9	; 249
  304:	fe 4f       	sbci	r31, 0xFE	; 254
  306:	88 e0       	ldi	r24, 0x08	; 8
  308:	80 83       	st	Z, r24
@@ -511,12 +511,12 @@ Enter_Kernel:
  342:	dc 01       	movw	r26, r24
  344:	2d 93       	st	X+, r18
  346:	3c 93       	st	X, r19
- 348:	37 96       	adiw	r30, 0x07	; 7
+ 348:	38 96       	adiw	r30, 0x08	; 8
  34a:	60 83       	st	Z, r22
  34c:	71 83       	std	Z+1, r23	; 0x01
  34e:	32 96       	adiw	r30, 0x02	; 2
  350:	10 82       	st	Z, r1
- 352:	34 97       	sbiw	r30, 0x04	; 4
+ 352:	35 97       	sbiw	r30, 0x05	; 5
  354:	81 e0       	ldi	r24, 0x01	; 1
  356:	80 83       	st	Z, r24
  358:	08 95       	ret
@@ -530,13 +530,13 @@ Enter_Kernel:
  368:	20 91 0a 03 	lds	r18, 0x030A
  36c:	22 23       	and	r18, r18
  36e:	a9 f0       	breq	.+42     	; 0x39a <Kernel_Create_Task+0x40>
- 370:	20 91 11 04 	lds	r18, 0x0411
+ 370:	20 91 12 04 	lds	r18, 0x0412
  374:	22 23       	and	r18, r18
  376:	59 f0       	breq	.+22     	; 0x38e <Kernel_Create_Task+0x34>
- 378:	20 91 18 05 	lds	r18, 0x0518
+ 378:	20 91 1a 05 	lds	r18, 0x051A
  37c:	22 23       	and	r18, r18
  37e:	51 f0       	breq	.+20     	; 0x394 <Kernel_Create_Task+0x3a>
- 380:	20 91 1f 06 	lds	r18, 0x061F
+ 380:	20 91 22 06 	lds	r18, 0x0622
  384:	21 11       	cpse	r18, r1
  386:	0c c0       	rjmp	.+24     	; 0x3a0 <Kernel_Create_Task+0x46>
  388:	43 e0       	ldi	r20, 0x03	; 3
@@ -559,7 +559,7 @@ Enter_Kernel:
  3ae:	01 96       	adiw	r24, 0x01	; 1
  3b0:	90 93 01 02 	sts	0x0201, r25
  3b4:	80 93 00 02 	sts	0x0200, r24
- 3b8:	27 e0       	ldi	r18, 0x07	; 7
+ 3b8:	28 e0       	ldi	r18, 0x08	; 8
  3ba:	31 e0       	ldi	r19, 0x01	; 1
  3bc:	42 9f       	mul	r20, r18
  3be:	c0 01       	movw	r24, r0
@@ -582,9 +582,9 @@ Enter_Kernel:
  3e6:	10 92 04 02 	sts	0x0204, r1
  3ea:	e8 e0       	ldi	r30, 0x08	; 8
  3ec:	f2 e0       	ldi	r31, 0x02	; 2
- 3ee:	24 e2       	ldi	r18, 0x24	; 36
+ 3ee:	28 e2       	ldi	r18, 0x28	; 40
  3f0:	36 e0       	ldi	r19, 0x06	; 6
- 3f2:	87 e0       	ldi	r24, 0x07	; 7
+ 3f2:	88 e0       	ldi	r24, 0x08	; 8
  3f4:	91 e0       	ldi	r25, 0x01	; 1
  3f6:	df 01       	movw	r26, r30
  3f8:	ac 01       	movw	r20, r24
@@ -596,7 +596,7 @@ Enter_Kernel:
  404:	ae 5f       	subi	r26, 0xFE	; 254
  406:	be 4f       	sbci	r27, 0xFE	; 254
  408:	1c 92       	st	X, r1
- 40a:	e9 5f       	subi	r30, 0xF9	; 249
+ 40a:	e8 5f       	subi	r30, 0xF8	; 248
  40c:	fe 4f       	sbci	r31, 0xFE	; 254
  40e:	e2 17       	cp	r30, r18
  410:	f3 07       	cpc	r31, r19
@@ -625,22 +625,22 @@ Enter_Kernel:
  446:	e0 91 06 02 	lds	r30, 0x0206
  44a:	f0 91 07 02 	lds	r31, 0x0207
  44e:	df 01       	movw	r26, r30
- 450:	aa 5f       	subi	r26, 0xFA	; 250
+ 450:	a9 5f       	subi	r26, 0xF9	; 249
  452:	be 4f       	sbci	r27, 0xFE	; 254
  454:	1c 92       	st	X, r1
  456:	80 81       	ld	r24, Z
  458:	91 81       	ldd	r25, Z+1	; 0x01
- 45a:	90 93 25 06 	sts	0x0625, r25
- 45e:	80 93 24 06 	sts	0x0624, r24
+ 45a:	90 93 29 06 	sts	0x0629, r25
+ 45e:	80 93 28 06 	sts	0x0628, r24
  462:	53 de       	rcall	.-858    	; 0x10a <CSwitch>
  464:	e0 91 06 02 	lds	r30, 0x0206
  468:	f0 91 07 02 	lds	r31, 0x0207
- 46c:	80 91 24 06 	lds	r24, 0x0624
- 470:	90 91 25 06 	lds	r25, 0x0625
+ 46c:	80 91 28 06 	lds	r24, 0x0628
+ 470:	90 91 29 06 	lds	r25, 0x0629
  474:	91 83       	std	Z+1, r25	; 0x01
  476:	80 83       	st	Z, r24
  478:	df 01       	movw	r26, r30
- 47a:	aa 5f       	subi	r26, 0xFA	; 250
+ 47a:	a9 5f       	subi	r26, 0xF9	; 249
  47c:	be 4f       	sbci	r27, 0xFE	; 254
  47e:	8c 91       	ld	r24, X
  480:	81 30       	cpi	r24, 0x01	; 1
@@ -651,7 +651,7 @@ Enter_Kernel:
  48a:	88 30       	cpi	r24, 0x08	; 8
  48c:	61 f0       	breq	.+24     	; 0x4a6 <OS_Start+0x90>
  48e:	db cf       	rjmp	.-74     	; 0x446 <OS_Start+0x30>
- 490:	ec 5f       	subi	r30, 0xFC	; 252
+ 490:	eb 5f       	subi	r30, 0xFB	; 251
  492:	fe 4f       	sbci	r31, 0xFE	; 254
  494:	80 81       	ld	r24, Z
  496:	91 81       	ldd	r25, Z+1	; 0x01
@@ -678,7 +678,7 @@ Enter_Kernel:
  4c0:	f8 94       	cli
  4c2:	e0 91 06 02 	lds	r30, 0x0206
  4c6:	f0 91 07 02 	lds	r31, 0x0207
- 4ca:	ea 5f       	subi	r30, 0xFA	; 250
+ 4ca:	e9 5f       	subi	r30, 0xF9	; 249
  4cc:	fe 4f       	sbci	r31, 0xFE	; 254
  4ce:	82 e0       	ldi	r24, 0x02	; 2
  4d0:	80 83       	st	Z, r24
