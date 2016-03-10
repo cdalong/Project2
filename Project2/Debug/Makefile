@@ -37,7 +37,7 @@ SUBDIRS :=
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
-../active.c
+../os.c
 
 
 PREPROCESSING_SRCS +=  \
@@ -48,19 +48,19 @@ ASM_SRCS +=
 
 
 OBJS +=  \
-active.o \
+os.o \
 cswitch.o
 
 OBJS_AS_ARGS +=  \
-active.o \
+os.o \
 cswitch.o
 
 C_DEPS +=  \
-active.d \
+os.d \
 cswitch.d
 
 C_DEPS_AS_ARGS +=  \
-active.d \
+os.d \
 cswitch.d
 
 OUTPUT_FILE_PATH +=Project2.elf

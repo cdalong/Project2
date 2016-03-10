@@ -110,12 +110,27 @@ typedef enum kernel_request_type
    TERMINATE
 } KERNEL_REQUEST_TYPE;
 
+typedef struct
+{
+	/** The code the new task is to run.*/
+	voidfuncvoid_ptr f;
+	/** A new task may be created with an argument that it can retrieve later. */
+	int arg;
+	/** Priority of the new task: RR, PERIODIC, SYSTEM */
+	uint8_t level;
+	/** If the new task is PERIODIC, this is its name in the PPP array. */
+	uint8_t name;
+}
+create_args_t;
+
 /**
   * Each task is represented by a process descriptor, which contains all
   * relevant information about this task. For convenience, we also store
   * the task's stack, i.e., its workspace, in here.
   */
-typedef struct ProcessDescriptor 
+typedef struct td_struct ProcessDescriptor;
+
+struct td_struct
 {
    unsigned char *sp;   /* stack pointer into the "workSpace" */
    unsigned char workSpace[WORKSPACE]; 
@@ -123,20 +138,28 @@ typedef struct ProcessDescriptor
    PROCESS_STATES state;
    PRIORITY original; //priority of created function
    PRIORITY inherited; // Inherited for inversion problem
+   int arg;
    voidfuncptr  code;   /* function to be executed as a task */
    KERNEL_REQUEST_TYPE request;
-} PD;
+   ProcessDescriptor* nextinHold; //Next process holding this task
+} ;
 
+typedef struct{
+	
+	 ProcessDescriptor* head;
+	 ProcessDescriptor* tail;
+	
+}queue_t;
 /**
   * This table contains ALL process descriptors. It doesn't matter what
   * state a task is in.
   */
-static PD Process[MAXPROCESS];
+static  ProcessDescriptor Process[MAXPROCESS];
 
 /**
   * The process descriptor of the currently RUNNING task.
   */
-volatile static PD* Cp; 
+volatile static  ProcessDescriptor* Cp; 
 
 /** 
   * Since this is a "full-served" model, the kernel is executing using its own
@@ -173,7 +196,7 @@ volatile static unsigned int Tasks;
 
 /*Chane to include Priority*/
 
-void Kernel_Create_Task_At( PD *p, voidfuncptr f ) 
+void Kernel_Create_Task_At(  ProcessDescriptor *p, voidfuncptr f ) 
 {   
    unsigned char *sp;
 
@@ -327,7 +350,7 @@ void OS_Init()
    NextP = 0;
 	//Reminder: Clear the memory for the task on creation.
    for (x = 0; x < MAXPROCESS; x++) {
-      memset(&(Process[x]),0,sizeof(PD));
+      memset(&(Process[x]),0,sizeof(ProcessDescriptor));
       Process[x].state = DEAD;
    }
 }

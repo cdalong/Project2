@@ -3,33 +3,33 @@ Archive member included to satisfy reference by file (symbol)
 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.9.2/avr6\libgcc.a(_exit.o)
                               C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.0.98/gcc/dev/atmega2560/avr6/crtatmega2560.o (exit)
 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.9.2/avr6\libgcc.a(_clear_bss.o)
-                              active.o (__do_clear_bss)
+                              os.o (__do_clear_bss)
 
 Allocating common symbols
 Common symbol       size              file
 
-CurrentSp           0x2               active.o
-KernelSp            0x2               active.o
+CurrentSp           0x2               os.o
+KernelSp            0x2               os.o
 
 Discarded input sections
 
  .data          0x00000000        0x0 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.0.98/gcc/dev/atmega2560/avr6/crtatmega2560.o
  .bss           0x00000000        0x0 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.0.98/gcc/dev/atmega2560/avr6/crtatmega2560.o
- .text          0x00000000        0x0 active.o
- .data          0x00000000        0x0 active.o
- .bss           0x00000000        0x0 active.o
+ .text          0x00000000        0x0 os.o
+ .data          0x00000000        0x0 os.o
+ .bss           0x00000000        0x0 os.o
  .text.Task_Create
-                0x00000000       0x32 active.o
+                0x00000000       0x32 os.o
  .text.Task_Suspend
-                0x00000000        0x2 active.o
+                0x00000000        0x2 os.o
  .text.Task_Get_Arg
-                0x00000000        0x2 active.o
+                0x00000000        0x2 os.o
  .text.Task_Yield
-                0x00000000        0x2 active.o
+                0x00000000        0x2 os.o
  .text.Task_Sleep
-                0x00000000        0x2 active.o
- .text.Ping     0x00000000       0x2a active.o
- .text.Pong     0x00000000       0x2a active.o
+                0x00000000        0x2 os.o
+ .text.Ping     0x00000000       0x2a os.o
+ .text.Pong     0x00000000       0x2a os.o
  .data          0x00000000        0x0 cswitch.o
  .bss           0x00000000        0x0 cswitch.o
  .text          0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.9.2/avr6\libgcc.a(_exit.o)
@@ -81,7 +81,7 @@ Linker script and memory map
 
 Address of section .data set to 0x800200
 LOAD C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.0.98/gcc/dev/atmega2560/avr6/crtatmega2560.o
-LOAD active.o
+LOAD os.o
 LOAD cswitch.o
 START GROUP
 LOAD c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.9.2/../../../../avr/lib/avr6\libm.a
@@ -301,27 +301,27 @@ END GROUP
                 0x0000025e                . = ALIGN (0x2)
  *(.text.*)
  .text.Dispatch
-                0x0000025e       0x8e active.o
+                0x0000025e       0x8e os.o
  .text.Task_Terminate
-                0x000002ec       0x22 active.o
+                0x000002ec       0x22 os.o
                 0x000002ec                Task_Terminate
  .text.Kernel_Create_Task_At
-                0x0000030e       0x4c active.o
+                0x0000030e       0x4c os.o
                 0x0000030e                Kernel_Create_Task_At
  .text.Kernel_Create_Task
-                0x0000035a       0x78 active.o
- .text.OS_Init  0x000003d2       0x44 active.o
+                0x0000035a       0x78 os.o
+ .text.OS_Init  0x000003d2       0x44 os.o
                 0x000003d2                OS_Init
  .text.OS_Start
-                0x00000416       0x9e active.o
+                0x00000416       0x9e os.o
                 0x00000416                OS_Start
  .text.Task_Next
-                0x000004b4       0x22 active.o
+                0x000004b4       0x22 os.o
                 0x000004b4                Task_Next
  .text.__vector_21
-                0x000004d6       0x52 active.o
+                0x000004d6       0x52 os.o
                 0x000004d6                __vector_21
- .text.main     0x00000528        0x6 active.o
+ .text.main     0x00000528        0x6 os.o
                 0x00000528                main
                 0x0000052e                . = ALIGN (0x2)
  *(.fini9)
@@ -361,30 +361,30 @@ END GROUP
                 0x00800200                _edata = .
                 0x00800200                PROVIDE (__data_end, .)
 
-.bss            0x00800200      0x42c
+.bss            0x00800200      0x43c
                 0x00800200                PROVIDE (__bss_start, .)
  *(.bss)
  *(.bss*)
- .bss.Tasks     0x00800200        0x2 active.o
+ .bss.Tasks     0x00800200        0x2 os.o
  .bss.KernelActive
-                0x00800202        0x2 active.o
- .bss.NextP     0x00800204        0x2 active.o
- .bss.Cp        0x00800206        0x2 active.o
- .bss.Process   0x00800208      0x420 active.o
+                0x00800202        0x2 os.o
+ .bss.NextP     0x00800204        0x2 os.o
+ .bss.Cp        0x00800206        0x2 os.o
+ .bss.Process   0x00800208      0x430 os.o
  *(COMMON)
- COMMON         0x00800628        0x4 active.o
-                0x00800628                CurrentSp
-                0x0080062a                KernelSp
-                0x0080062c                PROVIDE (__bss_end, .)
+ COMMON         0x00800638        0x4 os.o
+                0x00800638                CurrentSp
+                0x0080063a                KernelSp
+                0x0080063c                PROVIDE (__bss_end, .)
                 0x00000532                __data_load_start = LOADADDR (.data)
                 0x00000532                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x0080062c        0x0
-                0x0080062c                PROVIDE (__noinit_start, .)
+.noinit         0x0080063c        0x0
+                0x0080063c                PROVIDE (__noinit_start, .)
  *(.noinit*)
-                0x0080062c                PROVIDE (__noinit_end, .)
-                0x0080062c                _end = .
-                0x0080062c                PROVIDE (__heap_start, .)
+                0x0080063c                PROVIDE (__noinit_end, .)
+                0x0080063c                _end = .
+                0x0080063c                PROVIDE (__heap_start, .)
 
 .eeprom         0x00810000        0x0
  *(.eeprom*)
@@ -425,7 +425,7 @@ END GROUP
 
 .comment        0x00000000       0x30
  *(.comment)
- .comment       0x00000000       0x30 active.o
+ .comment       0x00000000       0x30 os.o
                                  0x31 (size before relaxing)
 
 .note.gnu.avr.deviceinfo
@@ -451,40 +451,40 @@ END GROUP
 .debug_aranges  0x00000000       0xb8
  *(.debug_aranges)
  .debug_aranges
-                0x00000000       0x98 active.o
+                0x00000000       0x98 os.o
  .debug_aranges
                 0x00000098       0x20 cswitch.o
 
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x00000000      0x61f
+.debug_info     0x00000000      0x63f
  *(.debug_info .gnu.linkonce.wi.*)
- .debug_info    0x00000000      0x5a8 active.o
- .debug_info    0x000005a8       0x77 cswitch.o
+ .debug_info    0x00000000      0x5c8 os.o
+ .debug_info    0x000005c8       0x77 cswitch.o
 
 .debug_abbrev   0x00000000      0x292
  *(.debug_abbrev)
- .debug_abbrev  0x00000000      0x27e active.o
+ .debug_abbrev  0x00000000      0x27e os.o
  .debug_abbrev  0x0000027e       0x14 cswitch.o
 
-.debug_line     0x00000000      0x48b
+.debug_line     0x00000000      0x487
  *(.debug_line .debug_line.* .debug_line_end)
- .debug_line    0x00000000      0x3d0 active.o
- .debug_line    0x000003d0       0xbb cswitch.o
+ .debug_line    0x00000000      0x3cc os.o
+ .debug_line    0x000003cc       0xbb cswitch.o
 
 .debug_frame    0x00000000      0x164
  *(.debug_frame)
- .debug_frame   0x00000000      0x164 active.o
+ .debug_frame   0x00000000      0x164 os.o
 
-.debug_str      0x00000000      0x36f
+.debug_str      0x00000000      0x380
  *(.debug_str)
- .debug_str     0x00000000      0x36f active.o
-                                0x3b1 (size before relaxing)
+ .debug_str     0x00000000      0x380 os.o
+                                0x3c2 (size before relaxing)
 
 .debug_loc      0x00000000      0x3f7
  *(.debug_loc)
- .debug_loc     0x00000000      0x3f7 active.o
+ .debug_loc     0x00000000      0x3f7 os.o
 
 .debug_macinfo
  *(.debug_macinfo)
@@ -506,7 +506,7 @@ END GROUP
 
 .debug_ranges   0x00000000       0x88
  *(.debug_ranges)
- .debug_ranges  0x00000000       0x88 active.o
+ .debug_ranges  0x00000000       0x88 os.o
 
 .debug_macro
  *(.debug_macro)

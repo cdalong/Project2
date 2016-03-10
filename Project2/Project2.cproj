@@ -120,7 +120,7 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="active.c">
+    <Compile Include="os.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="cswitch.s">
