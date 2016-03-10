@@ -1,5 +1,5 @@
 #include <string.h>
-//#include "os.h"
+#include "os.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 /**
@@ -35,7 +35,7 @@ typedef void (*voidfuncptr) (void);      /* pointer to void f(void) */
 
 #define WORKSPACE     256
  #define MAXPROCESS   4
-int counter = 0;
+  typedef unsigned char PRIORITY;
 
 
 /*===========
@@ -87,7 +87,11 @@ typedef enum process_states
 { 
    DEAD = 0, 
    READY, 
-   RUNNING 
+   RUNNING,
+   BLOCKED,
+   SUSPENDED,
+   SUSPENDEDBLOCKED,
+   SUSPENDEDREADY 
 } PROCESS_STATES;
 
 /**
@@ -98,6 +102,11 @@ typedef enum kernel_request_type
    NONE = 0,
    CREATE,
    NEXT,
+   SLEEP,
+   SUSPEND,
+   GETARG,
+   RESUME,
+   YIELD,
    TERMINATE
 } KERNEL_REQUEST_TYPE;
 
@@ -110,7 +119,9 @@ typedef struct ProcessDescriptor
 {
    unsigned char *sp;   /* stack pointer into the "workSpace" */
    unsigned char workSpace[WORKSPACE]; 
+   
    PROCESS_STATES state;
+   PRIORITY p;
    voidfuncptr  code;   /* function to be executed as a task */
    KERNEL_REQUEST_TYPE request;
 } PD;
@@ -159,6 +170,7 @@ volatile static unsigned int Tasks;
  * (See file "cswitch.S" for details.)
  */
 
+/*Chane to include Priority*/
 
 void Kernel_Create_Task_At( PD *p, voidfuncptr f ) 
 {   
@@ -342,7 +354,7 @@ void OS_Start()
   * each task gives up its share of the processor voluntarily by calling
   * Task_Next().
   */
-void Task_Create( voidfuncptr f)
+PID Task_Create( voidfuncptr f, PRIORITY py, int arg)
 {
    if (KernelActive ) {
      Disable_Interrupt();
@@ -390,6 +402,27 @@ void Task_Terminate()
    }
 }
 
+void Task_Suspend(PID p)
+{
+	
+	//Suspend Task
+	
+}
+
+void Task_Get_Arg(PID p){
+	
+	//Get Argument
+}
+
+void Task_Yield(){
+	//Yield to Priority Tasks
+}
+
+void Task_Sleep(TICK t){
+	//Put the task to sleep for a certain amount of time
+	//Eventually to take a clock tick parameter
+	
+}
 /*============
   * A Simple Test 
   *============
@@ -456,33 +489,18 @@ void Pong()
   */
 void main() 
 {
-	DDRB |= (1<<DDB7);
-	DDRL |= (1<<DDL1);// pin 48 test
-	//data direction register
-	 TCCR0A = 0;// set entire TCCR2A register to 0
-	 TCCR0B = 0;// same for TCCR2B
-	 TCNT0  = 0;//initialize counter value to 0
-	 // set compare match register for 1khz increments
-	 OCR0A = 156;// = (16*10^6) / (100*64) - 1 (must be <256)
-	 // turn on CTC mode
-	 TCCR0A |= (157 << WGM01);
-	 // Set CS01 and CS00 bits for  prescaler
-	 TCCR0B |= (1 << CS00) | (1<<CS02);
-	 // enable timer compare interrupt
-	 TIMSK0 |= (1 << OCIE0A);
+	
    OS_Init();
-   Task_Create( Pong );
-   Task_Create( Ping );
+   //Task_Create( Pong );
+   //Task_Create( Ping );
   
    OS_Start();
-   Enable_Interrupt();
+ 
     
    
   
    
 
-   while(1){
-	   ;
-   }
+  
 }
 
