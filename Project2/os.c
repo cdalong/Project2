@@ -110,18 +110,7 @@ typedef enum kernel_request_type
    TERMINATE
 } KERNEL_REQUEST_TYPE;
 
-typedef struct
-{
-	/** The code the new task is to run.*/
-	voidfuncvoid_ptr f;
-	/** A new task may be created with an argument that it can retrieve later. */
-	int arg;
-	/** Priority of the new task: RR, PERIODIC, SYSTEM */
-	uint8_t level;
-	/** If the new task is PERIODIC, this is its name in the PPP array. */
-	uint8_t name;
-}
-create_args_t;
+
 
 /**
   * Each task is represented by a process descriptor, which contains all
@@ -141,7 +130,7 @@ struct td_struct
    int arg;
    voidfuncptr  code;   /* function to be executed as a task */
    KERNEL_REQUEST_TYPE request;
-   ProcessDescriptor* nextinHold; //Next process holding this task
+   ProcessDescriptor* next; //Next process holding this task
 } ;
 
 typedef struct{
@@ -446,6 +435,40 @@ void Task_Sleep(TICK t){
 	//Put the task to sleep for a certain amount of time
 	//Eventually to take a clock tick parameter
 	
+}
+
+static void enqueue(queue_t* input_queue, ProcessDescriptor* input_process){
+	
+	input_process->next = NULL;
+	
+	if(input_queue->head == NULL){
+		
+		input_queue->head = input_process;
+		input_queue->tail = input_process;
+	}
+	else{
+		
+		input_queue->tail->next = input_process;
+		input_queue->tail = input_process;
+		
+	}
+	
+	
+}
+
+
+static ProcessDescriptor* dequeue(queue_t* input_queue){
+	
+	ProcessDescriptor* processpointer = input_queue->head;
+	
+	if(input_queue->head != NULL)
+	{
+		input_queue->head = input_queue->head->next;
+		processpointer->next = NULL;
+		
+	}
+	
+	return processpointer;
 }
 /*============
   * A Simple Test 
