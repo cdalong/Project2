@@ -131,7 +131,7 @@ typedef enum kernel_request_type
   * the task's stack, i.e., its workspace, in here.
   */
 typedef struct td_struct ProcessDescriptor;
-typedef struct td_struct sleepnode;
+typedef struct sleep_struct sleepnode;
 
 struct td_struct
 {
@@ -155,7 +155,7 @@ typedef struct{
 	
 }queue_t;
 
-typedef struct sleepnode {
+struct sleep_struct {
 	
 	ProcessDescriptor* task;
 	sleepnode* next;
@@ -314,51 +314,55 @@ static void enqueue(queue_t* input_queue, ProcessDescriptor* input_process){
 	
 	
 }
-static void enqueue_sleep(queue_t* input_queue, ProcessDescriptor* input_process){
+static void enqueue_sleep(queue_t* input_queue, sleepnode* input_sleepnode){
 	
-	ProcessDescriptor* tmp = NULL;
-	ProcessDescriptor* tmp2 = NULL;
+	sleepnode* tmp = NULL;
+	sleepnode* tmp2 = NULL;
 	TICK before;
 	TICK after;
 	
 	if(input_queue->head == NULL){
 		
-		input_queue->head = input_process;
-		input_queue->tail = input_process;
+		input_queue->head = input_sleepnode->task;
+		input_queue->tail = input_sleepnode->task;
 	}
 	else{
 		
 		before = input_queue->head->ticks;
 		
 		after = input_queue->head->next->ticks;
+	
 		
-		if (input_process->ticks > before)
+		if (input_sleepnode->task->ticks > before)
 		{
 			
 			tmp = input_queue->head;
-			input_queue->head = input_process;
-			input_process->next = tmp;
+			input_queue->head = input_sleepnode;
+			input_sleepnode->next = tmp;
 			
 		}
 		else{
-			for(tmp = input_queue->head;tmp->next != NULL; tmp=tmp->next){
+			for(tmp = input_queue->head;tmp->next != NULL; tmp=tmp->next)
+			{
 				
 				before = after;
-				after = tmp->next->ticks;
+				after = tmp->task->next->ticks;
+			}
 				
-				if (input_process->ticks >= before && input_process->ticks  <= after)
+				if (input_sleepnode->task->ticks >= before && input_sleepnode->task->ticks  <= after)
 				
 				{
 					tmp2 = tmp;
 					
-					tmp->next = input_process;
-					input_process->next = tmp2;
+					tmp->next = input_sleepnode;
+					input_sleepnode->next = tmp2;
 					
 					
 				}
-				else if(tmp->next == NULL && tmp->ticks <= input_process->ticks){
+				else if(tmp->next == NULL && tmp->task->ticks <= input_sleepnode->task->ticks){
 					
-					
+					input_queue->tail->next = input_sleepnode;
+					input_queue->tail = input_sleepnode;
 					
 				}
 				
@@ -372,7 +376,7 @@ static void enqueue_sleep(queue_t* input_queue, ProcessDescriptor* input_process
 	}
 	
 	
-}
+
 
 
 static ProcessDescriptor* dequeue(queue_t* input_queue){
