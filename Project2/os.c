@@ -3,6 +3,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#
 /**
  * \file active.c
  * \brief A Skeleton Implementation of an RTOS
@@ -142,8 +143,10 @@ struct td_struct
    PRIORITY original; //priority of created function
    PRIORITY inherited; // Inherited for inversion problem
    int arg;
+   int sleeping; //sleeping tasks will be labelled with 1
    voidfuncptr  code;   /* function to be executed as a task */
    KERNEL_REQUEST_TYPE request;
+   PID p;
    ProcessDescriptor* next; //Next process holding this task
 } ;
 
@@ -325,6 +328,7 @@ static void enqueue_sleep(queue_t* input_queue, sleepnode* input_sleepnode){
 		
 		input_queue->head = input_sleepnode->task;
 		input_queue->tail = input_sleepnode->task;
+		PORTL |= (1<< DDL1);
 	}
 	else{
 		
@@ -504,6 +508,8 @@ void OS_Init()
 {
    int x;
 	DDRA = (1<<PA0);
+	DDRB = (1<<DDB7);
+	DDRL |= (1<<DDL1);// pin 48 test
 	
 	DDRA = (1<<PA1);
 	PORTA &= ~(1<<PA1);
@@ -611,6 +617,17 @@ void Task_Sleep(TICK t){
 	//current process can only call sleep on itself
 	
 	//Iterate through sleep queue and place in timer fashion
+	sleepnode newnode;
+	Cp->sleeping = 1;
+	
+	Cp->ticks = t;
+	
+	newnode.task = Cp;
+	
+	enqueue_sleep(&sleeping_tasks, &newnode);
+	
+	//Task_Suspend(Cp->p);
+	Task_Terminate();
 	
 }
 
@@ -632,9 +649,11 @@ void Ping()
 		//LED on
 		//PORTA |= (1<<PA0);
 		PORTA &= ~(1<<PA0);
+		PORTB &= ~(1<<DDB7);
 		for( x=0; x < 32000; ++x );   /* do nothing */
 		for( x=0; x < 32000; ++x );   /* do nothing */
 		for( x=0; x < 32000; ++x );   /* do nothing */
+		//Task_Sleep(50);
 		Task_Next();
 	}
 }
@@ -652,7 +671,7 @@ void Pong()
 		//LED off
 		//PORTA &= ~(1<<PA0);
 		PORTA |= (1<<PA0);
-
+		PORTB |= (1<<DDB7);
 		for( x=0; x < 32000; ++x );   /* do nothing */
 		for( x=0; x < 32000; ++x );   /* do nothing */
 		for( x=0; x < 32000; ++x );   /* do nothing */
