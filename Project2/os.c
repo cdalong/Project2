@@ -131,12 +131,13 @@ typedef enum kernel_request_type
   * the task's stack, i.e., its workspace, in here.
   */
 typedef struct td_struct ProcessDescriptor;
+typedef struct td_struct sleepnode;
 
 struct td_struct
 {
    unsigned char *sp;   /* stack pointer into the "workSpace" */
    unsigned char workSpace[WORKSPACE]; 
-   
+   TICK ticks;
    PROCESS_STATES state;
    PRIORITY original; //priority of created function
    PRIORITY inherited; // Inherited for inversion problem
@@ -146,12 +147,20 @@ struct td_struct
    ProcessDescriptor* next; //Next process holding this task
 } ;
 
+
 typedef struct{
 	
 	 ProcessDescriptor* head;
 	 ProcessDescriptor* tail;
 	
 }queue_t;
+
+typedef struct sleepnode {
+	
+	ProcessDescriptor* task;
+	sleepnode* next;
+	
+};
 /**
   * This table contains ALL process descriptors. It doesn't matter what
   * state a task is in.
@@ -166,7 +175,7 @@ static ProcessDescriptor  task_desc[MAXPROCESS + 1];
 /** The special "idle task" at the end of the descriptors array. */
 static ProcessDescriptor* idle_task = &task_desc[MAXPROCESS];
 
-static ProcessDescriptor* current_task;
+
 //Data from currently running task
 
 static queue_t Dead_tasks; // terminated tasks
@@ -290,6 +299,7 @@ static void enqueue(queue_t* input_queue, ProcessDescriptor* input_process){
 	
 	input_process->next = NULL;
 	
+	
 	if(input_queue->head == NULL){
 		
 		input_queue->head = input_process;
@@ -299,6 +309,65 @@ static void enqueue(queue_t* input_queue, ProcessDescriptor* input_process){
 		
 		input_queue->tail->next = input_process;
 		input_queue->tail = input_process;
+		
+	}
+	
+	
+}
+static void enqueue_sleep(queue_t* input_queue, ProcessDescriptor* input_process){
+	
+	ProcessDescriptor* tmp = NULL;
+	ProcessDescriptor* tmp2 = NULL;
+	TICK before;
+	TICK after;
+	
+	if(input_queue->head == NULL){
+		
+		input_queue->head = input_process;
+		input_queue->tail = input_process;
+	}
+	else{
+		
+		before = input_queue->head->ticks;
+		
+		after = input_queue->head->next->ticks;
+		
+		if (input_process->ticks > before)
+		{
+			
+			tmp = input_queue->head;
+			input_queue->head = input_process;
+			input_process->next = tmp;
+			
+		}
+		else{
+			for(tmp = input_queue->head;tmp->next != NULL; tmp=tmp->next){
+				
+				before = after;
+				after = tmp->next->ticks;
+				
+				if (input_process->ticks >= before && input_process->ticks  <= after)
+				
+				{
+					tmp2 = tmp;
+					
+					tmp->next = input_process;
+					input_process->next = tmp2;
+					
+					
+				}
+				else if(tmp->next == NULL && tmp->ticks <= input_process->ticks){
+					
+					
+					
+				}
+				
+				
+				
+			}
+		}
+		
+	
 		
 	}
 	
@@ -322,11 +391,11 @@ static ProcessDescriptor* dequeue(queue_t* input_queue){
 
 static void new_dispatch()
 {
-	if (current_task != RUNNING || current_task == idle_task ){
+	if (Cp != RUNNING || Cp == idle_task ){
 		
 		if (system_tasks.head != NULL)
 		{
-			current_task = dequeue(&system_tasks);
+			Cp = dequeue(&system_tasks);
 		}
 		else if (!slot_task_finished && PT > 0 ) // There is some more to add here, but I don't know what they're doing
 		{
@@ -336,15 +405,15 @@ static void new_dispatch()
 		
 		else if(Round_Robin.head != NULL){
 			
-			current_task = dequeue(&Round_Robin);
+			Cp = dequeue(&Round_Robin);
 		}
 		else{
 		
-			current_task = idle_task;
+			Cp = idle_task;
 		}
 		
 	}
-	current_task->state = RUNNING;
+	Cp->state = RUNNING;
 	
 }
 
@@ -534,6 +603,10 @@ void Task_Yield(){
 void Task_Sleep(TICK t){
 	//Put the task to sleep for a certain amount of time
 	//Eventually to take a clock tick parameter
+	
+	//current process can only call sleep on itself
+	
+	//Iterate through sleep queue and place in timer fashion
 	
 }
 
