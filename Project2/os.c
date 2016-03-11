@@ -3,6 +3,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#
 /**
  * \file active.c
  * \brief A Skeleton Implementation of an RTOS
@@ -130,6 +131,7 @@ typedef enum kernel_request_type
 typedef struct td_struct ProcessDescriptor;
 //typedef struct td_struct sleepnode;
 
+
 struct td_struct
 {
    unsigned char *sp;   /* stack pointer into the "workSpace" */
@@ -139,8 +141,10 @@ struct td_struct
    PRIORITY original; //priority of created function
    PRIORITY inherited; // Inherited for inversion problem
    int arg;
+   int sleeping; //sleeping tasks will be labelled with 1
    voidfuncptr  code;   /* function to be executed as a task */
    KERNEL_REQUEST_TYPE request;
+   PID p;
    ProcessDescriptor* next; //Next process holding this task
    int PID;
    int susp; //Boolean for indicating suspension
@@ -154,12 +158,13 @@ typedef struct{
 	
 } queue_t;
 
- typedef struct sleepnode {
+
+typedef struct sleep_struct {
 	
 	ProcessDescriptor* task;
-	struct sleepnode* next;
+	struct sleep_struct* next;
 	
-} ;
+} sleep_struct ;
 /**
   * This table contains ALL process descriptors. It doesn't matter what
   * state a task is in.
@@ -314,51 +319,56 @@ static void enqueue(queue_t* input_queue, ProcessDescriptor* input_process){
 	
 	
 }
-static void enqueue_sleep(queue_t* input_queue, ProcessDescriptor* input_process){
+static void enqueue_sleep(queue_t* input_queue, sleep_struct* input_sleepnode){
 	
-	ProcessDescriptor* tmp = NULL;
-	ProcessDescriptor* tmp2 = NULL;
+	sleep_struct* tmp = NULL;
+	sleep_struct* tmp2 = NULL;
 	TICK before;
 	TICK after;
 	
 	if(input_queue->head == NULL){
 		
-		input_queue->head = input_process;
-		input_queue->tail = input_process;
+		input_queue->head = input_sleepnode->task;
+		input_queue->tail = input_sleepnode->task;
+		PORTL |= (1<< DDL1);
 	}
 	else{
 		
 		before = input_queue->head->ticks;
 		
 		after = input_queue->head->next->ticks;
+	
 		
-		if (input_process->ticks > before)
+		if (input_sleepnode->task->ticks > before)
 		{
 			
 			tmp = input_queue->head;
-			input_queue->head = input_process;
-			input_process->next = tmp;
+			input_queue->head = input_sleepnode;
+			input_sleepnode->next = tmp;
 			
 		}
 		else{
-			for(tmp = input_queue->head;tmp->next != NULL; tmp=tmp->next){
+			for(tmp = input_queue->head;tmp->next != NULL; tmp=tmp->next)
+			{
 				
 				before = after;
-				after = tmp->next->ticks;
+				after = tmp->task->next->ticks;
+			}
 				
-				if (input_process->ticks >= before && input_process->ticks  <= after)
+				if (input_sleepnode->task->ticks >= before && input_sleepnode->task->ticks  <= after)
 				
 				{
 					tmp2 = tmp;
 					
-					tmp->next = input_process;
-					input_process->next = tmp2;
+					tmp->next = input_sleepnode;
+					input_sleepnode->next = tmp2;
 					
 					
 				}
-				else if(tmp->next == NULL && tmp->ticks <= input_process->ticks){
+				else if(tmp->next == NULL && tmp->task->ticks <= input_sleepnode->task->ticks){
 					
-					
+					input_queue->tail->next = input_sleepnode;
+					input_queue->tail = input_sleepnode;
 					
 				}
 				
@@ -372,7 +382,7 @@ static void enqueue_sleep(queue_t* input_queue, ProcessDescriptor* input_process
 	}
 	
 	
-}
+
 
 
 static ProcessDescriptor* dequeue(queue_t* input_queue){
@@ -507,6 +517,8 @@ void OS_Init()
 {
    int x;
 	DDRA = (1<<PA0);
+	DDRB = (1<<DDB7);
+	DDRL |= (1<<DDL1);// pin 48 test
 	
 	DDRA = (1<<PA1);
 	PORTA &= ~(1<<PA1);
@@ -639,17 +651,17 @@ void Task_Yield(){
 void Task_Sleep(TICK t){
 	//Put the task to sleep for a certain amount of time
 	//Eventually to take a clock tick parameter
-	struct sleepnode newnode;
+	struct sleep_struct newnode;
 	Cp->ticks += t;
 	newnode.task = Cp;
-	enqueue_sleep(&sleeping_tasks, newnode.task);
+	enqueue_sleep(&sleeping_tasks, &newnode);
 	Task_Suspend(Cp->PID);
 	//current process can only call sleep on itself
 	//Iterate through sleep queue and place in timer fashion	
 }
 
 void TIMER3_COMPA_vect(void){
-  struct sleepnode* temp_node;
+  struct sleep_struct* temp_node;
   temp_node->task = sleeping_tasks.head;
   
   if (temp_node->task != NULL){
@@ -666,7 +678,6 @@ void TIMER3_COMPA_vect(void){
       temp_node = temp_node->next;
     }
   }
-
 }
 
 
@@ -687,9 +698,11 @@ void Ping()
 		//LED on
 		//PORTA |= (1<<PA0);
 		PORTA &= ~(1<<PA0);
+		PORTB &= ~(1<<DDB7);
 		for( x=0; x < 32000; ++x );   /* do nothing */
 		for( x=0; x < 32000; ++x );   /* do nothing */
 		for( x=0; x < 32000; ++x );   /* do nothing */
+		//Task_Sleep(50);
 		Task_Next();
 	}
 }
@@ -707,7 +720,7 @@ void Pong()
 		//LED off
 		//PORTA &= ~(1<<PA0);
 		PORTA |= (1<<PA0);
-
+		PORTB |= (1<<DDB7);
 		for( x=0; x < 32000; ++x );   /* do nothing */
 		for( x=0; x < 32000; ++x );   /* do nothing */
 		for( x=0; x < 32000; ++x );   /* do nothing */
@@ -730,12 +743,5 @@ void main()
    
   
    OS_Start();
- 
-    
-   
-
-   
-
-  
 }
 
