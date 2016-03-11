@@ -143,7 +143,7 @@ struct td_struct
    PRIORITY original; //priority of created function
    PRIORITY inherited; // Inherited for inversion problem
    int arg;
-   int sleeping; //sleeping tasks will be labelled with 1
+   int sleeping; //sleeping tasks will be labeled with 1
    voidfuncptr  code;   /* function to be executed as a task */
    KERNEL_REQUEST_TYPE request;
    PID p;
@@ -618,16 +618,16 @@ void Task_Sleep(TICK t){
 	
 	//Iterate through sleep queue and place in timer fashion
 	sleepnode newnode;
-	Cp->sleeping = 1;
-	
-	Cp->ticks = t;
+	//Cp->sleeping = 1;
+	Cp->request = SUSPENDED;
+	Cp->ticks += t;
 	
 	newnode.task = Cp;
 	
 	enqueue_sleep(&sleeping_tasks, &newnode);
 	
 	//Task_Suspend(Cp->p);
-	Task_Terminate();
+	//Task_Terminate();
 	
 }
 
