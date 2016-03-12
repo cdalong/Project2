@@ -21,17 +21,25 @@ Discarded input sections
  .data          0x00000000        0x0 os.o
  .bss           0x00000000        0x0 os.o
  .text.Task_Suspend
-                0x00000000        0x2 os.o
+                0x00000000       0x32 os.o
+ .text.get_Task
+                0x00000000       0x52 os.o
+ .text.Task_Resume
+                0x00000000       0x1a os.o
  .text.Task_Get_Arg
-                0x00000000        0x2 os.o
+                0x00000000       0x1a os.o
  .text.Task_Yield
                 0x00000000        0x2 os.o
+ .text.Mutex_Lock
+                0x00000000       0x2a os.o
+ .text.Mutex_Unlock
+                0x00000000       0x54 os.o
+ .text.Inherit_Priority
+                0x00000000       0x1e os.o
  .text.Task_Sleep
-                0x00000000      0x12e os.o
+                0x00000000      0x14c os.o
  .bss.ticks_remaining
                 0x00000000        0x1 os.o
- .bss.sleeping_tasks
-                0x00000000        0x4 os.o
  .data          0x00000000        0x0 cswitch.o
  .bss           0x00000000        0x0 cswitch.o
  .text          0x00000000        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.9.2/avr6\libgcc.a(_exit.o)
@@ -185,7 +193,7 @@ END GROUP
 .rela.plt
  *(.rela.plt)
 
-.text           0x00000000      0x5d8
+.text           0x00000000      0x612
  *(.vectors)
  .vectors       0x00000000       0xe4 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.0.98/gcc/dev/atmega2560/avr6/crtatmega2560.o
                 0x00000000                __vector_default
@@ -244,7 +252,6 @@ END GROUP
                 0x00000108                __vector_22
                 0x00000108                __vector_28
                 0x00000108                __vector_1
-                0x00000108                __vector_32
                 0x00000108                __vector_34
                 0x00000108                __vector_24
                 0x00000108                __vector_12
@@ -281,6 +288,7 @@ END GROUP
                 0x00000108                __vector_51
                 0x00000108                __vector_9
                 0x00000108                __vector_2
+                0x00000108                __vector_21
                 0x00000108                __vector_15
                 0x00000108                __vector_36
                 0x00000108                __vector_29
@@ -308,35 +316,35 @@ END GROUP
                 0x000002ec       0x22 os.o
                 0x000002ec                Task_Terminate
  .text.Kernel_Create_Task_At
-                0x0000030e       0x4c os.o
+                0x0000030e       0x50 os.o
                 0x0000030e                Kernel_Create_Task_At
  .text.Kernel_Create_Task
-                0x0000035a       0x78 os.o
- .text.OS_Init  0x000003d2       0x5c os.o
-                0x000003d2                OS_Init
+                0x0000035e       0x64 os.o
+ .text.OS_Init  0x000003c2       0x5c os.o
+                0x000003c2                OS_Init
  .text.OS_Start
-                0x0000042e       0x9e os.o
-                0x0000042e                OS_Start
+                0x0000041e       0xde os.o
+                0x0000041e                OS_Start
  .text.Task_Create
-                0x000004cc       0x2e os.o
-                0x000004cc                Task_Create
+                0x000004fc       0x2e os.o
+                0x000004fc                Task_Create
  .text.Task_Next
-                0x000004fa       0x22 os.o
-                0x000004fa                Task_Next
- .text.Ping     0x0000051c       0x24 os.o
-                0x0000051c                Ping
- .text.Pong     0x00000540       0x24 os.o
-                0x00000540                Pong
- .text.__vector_21
-                0x00000564       0x52 os.o
-                0x00000564                __vector_21
- .text.main     0x000005b6       0x1e os.o
-                0x000005b6                main
-                0x000005d4                . = ALIGN (0x2)
+                0x0000052a       0x22 os.o
+                0x0000052a                Task_Next
+ .text.Ping     0x0000054c       0x24 os.o
+                0x0000054c                Ping
+ .text.Pong     0x00000570       0x24 os.o
+                0x00000570                Pong
+ .text.__vector_32
+                0x00000594       0x5c os.o
+                0x00000594                __vector_32
+ .text.main     0x000005f0       0x1e os.o
+                0x000005f0                main
+                0x0000060e                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x000005d4        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.9.2/avr6\libgcc.a(_exit.o)
-                0x000005d4                _exit
-                0x000005d4                exit
+ .fini9         0x0000060e        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.9.2/avr6\libgcc.a(_exit.o)
+                0x0000060e                _exit
+                0x0000060e                exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -355,11 +363,11 @@ END GROUP
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x000005d4        0x4 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.9.2/avr6\libgcc.a(_exit.o)
+ .fini0         0x0000060e        0x4 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.9.2/avr6\libgcc.a(_exit.o)
  *(.fini0)
-                0x000005d8                _etext = .
+                0x00000612                _etext = .
 
-.data           0x00800200        0x0 load address 0x000005d8
+.data           0x00800200        0x0 load address 0x00000612
                 0x00800200                PROVIDE (__data_start, .)
  *(.data)
  *(.data*)
@@ -370,7 +378,7 @@ END GROUP
                 0x00800200                _edata = .
                 0x00800200                PROVIDE (__data_end, .)
 
-.bss            0x00800200      0x458
+.bss            0x00800200      0x8b4
                 0x00800200                PROVIDE (__bss_start, .)
  *(.bss)
  *(.bss*)
@@ -378,24 +386,26 @@ END GROUP
  .bss.KernelActive
                 0x00800202        0x2 os.o
  .bss.NextP     0x00800204        0x2 os.o
- .bss.Cp        0x00800206        0x2 os.o
- .bss.Process   0x00800208      0x448 os.o
+ .bss.sleeping_tasks
+                0x00800206        0x4 os.o
+ .bss.Process   0x0080020a      0x8a0 os.o
+ .bss.Cp        0x00800aaa        0x2 os.o
  *(COMMON)
- COMMON         0x00800650        0x8 os.o
-                0x00800650                PT
-                0x00800652                PPP
-                0x00800654                CurrentSp
-                0x00800656                KernelSp
-                0x00800658                PROVIDE (__bss_end, .)
-                0x000005d8                __data_load_start = LOADADDR (.data)
-                0x000005d8                __data_load_end = (__data_load_start + SIZEOF (.data))
+ COMMON         0x00800aac        0x8 os.o
+                0x00800aac                PT
+                0x00800aae                PPP
+                0x00800ab0                CurrentSp
+                0x00800ab2                KernelSp
+                0x00800ab4                PROVIDE (__bss_end, .)
+                0x00000612                __data_load_start = LOADADDR (.data)
+                0x00000612                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x00800658        0x0
-                0x00800658                PROVIDE (__noinit_start, .)
+.noinit         0x00800ab4        0x0
+                0x00800ab4                PROVIDE (__noinit_start, .)
  *(.noinit*)
-                0x00800658                PROVIDE (__noinit_end, .)
-                0x00800658                _end = .
-                0x00800658                PROVIDE (__heap_start, .)
+                0x00800ab4                PROVIDE (__noinit_end, .)
+                0x00800ab4                _end = .
+                0x00800ab4                PROVIDE (__heap_start, .)
 
 .eeprom         0x00810000        0x0
  *(.eeprom*)
@@ -459,43 +469,43 @@ END GROUP
 .debug_sfnames
  *(.debug_sfnames)
 
-.debug_aranges  0x00000000       0xb8
+.debug_aranges  0x00000000       0xe0
  *(.debug_aranges)
  .debug_aranges
-                0x00000000       0x98 os.o
+                0x00000000       0xc0 os.o
  .debug_aranges
-                0x00000098       0x20 cswitch.o
+                0x000000c0       0x20 cswitch.o
 
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x00000000      0x8c2
+.debug_info     0x00000000      0xbdd
  *(.debug_info .gnu.linkonce.wi.*)
- .debug_info    0x00000000      0x84b os.o
- .debug_info    0x0000084b       0x77 cswitch.o
+ .debug_info    0x00000000      0xb66 os.o
+ .debug_info    0x00000b66       0x77 cswitch.o
 
-.debug_abbrev   0x00000000      0x34b
+.debug_abbrev   0x00000000      0x3b0
  *(.debug_abbrev)
- .debug_abbrev  0x00000000      0x337 os.o
- .debug_abbrev  0x00000337       0x14 cswitch.o
+ .debug_abbrev  0x00000000      0x39c os.o
+ .debug_abbrev  0x0000039c       0x14 cswitch.o
 
-.debug_line     0x00000000      0x55b
+.debug_line     0x00000000      0x6fc
  *(.debug_line .debug_line.* .debug_line_end)
- .debug_line    0x00000000      0x4a0 os.o
- .debug_line    0x000004a0       0xbb cswitch.o
+ .debug_line    0x00000000      0x641 os.o
+ .debug_line    0x00000641       0xbb cswitch.o
 
-.debug_frame    0x00000000      0x174
+.debug_frame    0x00000000      0x1b4
  *(.debug_frame)
- .debug_frame   0x00000000      0x174 os.o
+ .debug_frame   0x00000000      0x1b4 os.o
 
-.debug_str      0x00000000      0x462
+.debug_str      0x00000000      0x518
  *(.debug_str)
- .debug_str     0x00000000      0x462 os.o
-                                0x4b3 (size before relaxing)
+ .debug_str     0x00000000      0x518 os.o
+                                0x56a (size before relaxing)
 
-.debug_loc      0x00000000      0x685
+.debug_loc      0x00000000      0x8a7
  *(.debug_loc)
- .debug_loc     0x00000000      0x685 os.o
+ .debug_loc     0x00000000      0x8a7 os.o
 
 .debug_macinfo
  *(.debug_macinfo)
@@ -515,9 +525,9 @@ END GROUP
 .debug_pubtypes
  *(.debug_pubtypes)
 
-.debug_ranges   0x00000000       0xa0
+.debug_ranges   0x00000000       0xc8
  *(.debug_ranges)
- .debug_ranges  0x00000000       0xa0 os.o
+ .debug_ranges  0x00000000       0xc8 os.o
 
 .debug_macro
  *(.debug_macro)

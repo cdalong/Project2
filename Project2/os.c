@@ -1,3 +1,4 @@
+
 #include <string.h>
 //#include "os.h"
 
@@ -30,18 +31,15 @@
  * (See the file "cswitch.S" for details.)
  */
 
-//Comment out the following line to remove debugging code from compiled version.
-
-
 typedef void (*voidfuncptr) (void);      /* pointer to void f(void) */ 
 
 #define WORKSPACE     256
-#define MAXPROCESS   4
+#define MAXPROCESS   8
 typedef unsigned int PID;        // always non-zero if it is valid
-typedef unsigned int MUTEX;      // always non-zero if it is valid
-typedef unsigned char PRIORITY;
-typedef unsigned int EVENT;      // always non-zero if it is valid
 typedef unsigned int TICK;
+typedef unsigned int MUTEX;      // always non-zero if it is valid
+typedef unsigned int EVENT;      // always non-zero if it is valid
+typedef unsigned char PRIORITY;
 const unsigned int PT;
 const unsigned int PPP[]; 
 static uint8_t slot_task_finished = 0; // indicates if peridoic task has run
@@ -124,76 +122,87 @@ typedef enum kernel_request_type
    TERMINATE
 } KERNEL_REQUEST_TYPE;
 
-
-
 /**
   * Each task is represented by a process descriptor, which contains all
   * relevant information about this task. For convenience, we also store
   * the task's stack, i.e., its workspace, in here.
   */
-typedef struct td_struct ProcessDescriptor;
-typedef struct sleep_struct sleepnode;
-
-struct td_struct
-{
-   unsigned char *sp;   /* stack pointer into the "workSpace" */
-   unsigned char workSpace[WORKSPACE]; 
-   TICK ticks;
-   PROCESS_STATES state;
-   PRIORITY original; //priority of created function
-   PRIORITY inherited; // Inherited for inversion problem
+typedef struct processDescriptor {
+   unsigned char *sp;                   // Stack pointer into the "workSpace"
+   unsigned char workSpace[WORKSPACE];  // Memory available to the process
+   TICK ticks;                          // Ticks remaining to sleep
+   PROCESS_STATES state;                // Current state of process
+   PRIORITY original;                   // Priority of created function
+   PRIORITY inherited;                  // Inherited priority (to counter priority inversion)
+   voidfuncptr  code;                   // Function to be executed as a task
+   KERNEL_REQUEST_TYPE request;         // State change request to be conducted by kernel when appropriate
+   PID p;                               // Process identification number
+   struct processDescriptor* next;             // Next process holding this task
+   int PID;
+   int susp;                            //Boolean for indicating suspension
    int arg;
-   int sleeping; //sleeping tasks will be labeled with 1
-   voidfuncptr  code;   /* function to be executed as a task */
-   KERNEL_REQUEST_TYPE request;
-   PID p;
-   ProcessDescriptor* next; //Next process holding this task
-} ;
+} processDescriptor;
 
+typedef struct sleep_node {
 
-typedef struct{
+	processDescriptor* task;
+	struct sleep_node* next;
+
+} sleep_node;
+
+typedef struct mutex_node{
 	
-	 ProcessDescriptor* head;
-	 ProcessDescriptor* tail;
-	
-}queue_t;
+	processDescriptor* task;
+	struct mutex_node* next;
+	}mutex_node;
+typedef struct queue_t {
 
-struct sleep_struct {
-	
-	ProcessDescriptor* task;
-	sleepnode* next;
-	
-};
-/**
-  * This table contains ALL process descriptors. It doesn't matter what
-  * state a task is in.
-  */
-static  ProcessDescriptor Process[MAXPROCESS];
+	 processDescriptor* head;
+	 processDescriptor* tail;
 
-/**
-  * The process descriptor of the currently RUNNING task.
-  */
-volatile static  ProcessDescriptor* Cp; 
-static ProcessDescriptor  task_desc[MAXPROCESS + 1];
-/** The special "idle task" at the end of the descriptors array. */
-static ProcessDescriptor* idle_task = &task_desc[MAXPROCESS];
+} queue_t;
 
+typedef struct sleep_queue {
+
+	sleep_node* head;
+	sleep_node* tail;
+	
+} sleep_queue;
+typedef struct mutex_queue{
+	
+	mutex_node* head;
+	mutex_node* tail;
+	
+	
+	}mutex_queue;
+typedef enum { false, 
+	         true } bool;
+			 
+
+
+
+
+typedef struct mutex {
+	
+	bool locked;
+	processDescriptor* owner;
+	mutex_queue* queue;
+	//mutex_node * next;
+	
+	} mutex;
+
+volatile static  processDescriptor* Cp;           // The process descriptor of the currently RUNNING task.
+static  processDescriptor Process[MAXPROCESS];    // Contains ALL process descriptors, regardless of state
+static processDescriptor  task_desc[MAXPROCESS + 1];
+static processDescriptor* idle_task = &task_desc[MAXPROCESS]; // Idle task at end of array
 
 //Data from currently running task
-
-static queue_t Dead_tasks; // terminated tasks
-
-static queue_t Round_Robin;// round robin task queue
-
-static queue_t system_tasks; // system task queue
-
-static queue_t sleeping_tasks; // sleeping task queue
-
-static queue_t event_queue; // tasks waiting on events
-
-static volatile uint8_t ticks_remaining; // time remaining in current slot?
-
-
+static queue_t Dead_tasks;                // terminated tasks
+static queue_t Round_Robin;               // round robin task queue
+static queue_t system_tasks;              // system task queue
+static sleep_queue sleeping_tasks;        // sleeping task queue
+static queue_t event_queue;               // tasks waiting on events
+static volatile uint8_t ticks_remaining;  // time remaining in current slot?
 
 /** 
   * Since this is a "full-served" model, the kernel is executing using its own
@@ -230,16 +239,12 @@ volatile static unsigned int Tasks;
 
 /*Chane to include Priority*/
 
-void Kernel_Create_Task_At(  ProcessDescriptor *p, voidfuncptr f ) 
+void Kernel_Create_Task_At(  processDescriptor *p, voidfuncptr f ) 
 {   
    unsigned char *sp;
 
-
-
    //Changed -2 to -1 to fix off by one error.
    sp = (unsigned char *) &(p->workSpace[WORKSPACE-1]);
-
-
 
    /*----BEGIN of NEW CODE----*/
    //Initialize the workspace (i.e., stack) and PD here!
@@ -256,17 +261,16 @@ void Kernel_Create_Task_At(  ProcessDescriptor *p, voidfuncptr f )
    //Store terminate at the bottom of stack to protect against stack underrun.
    *(unsigned char *)sp-- = ((unsigned int)Task_Terminate) & 0xff;
    *(unsigned char *)sp-- = (((unsigned int)Task_Terminate) >> 8) & 0xff;
+   *(unsigned char *)sp-- = 0x00;
 
    //Place return address of function at bottom of stack
    *(unsigned char *)sp-- = ((unsigned int)f) & 0xff;
    *(unsigned char *)sp-- = (((unsigned int)f) >> 8) & 0xff;
    *(unsigned char *)sp-- = 0x00;
 
-
    //Place stack pointer at top of stack
    sp = sp - 34;
 
-      
    p->sp = sp;		/* stack pointer into the "workSpace" */
    p->code = f;		/* function to be executed as a task */
    p->request = NONE;
@@ -274,9 +278,7 @@ void Kernel_Create_Task_At(  ProcessDescriptor *p, voidfuncptr f )
    /*----END of NEW CODE----*/
 
    p->state = READY;
-
 }
-
 
 /**
   *  Create a new task
@@ -298,131 +300,112 @@ static void Kernel_Create_Task( voidfuncptr f )
 
 }
 
-static void enqueue(queue_t* input_queue, ProcessDescriptor* input_process){
+static void enqueue_mutex(mutex_queue* input_queue, mutex_node* input_node){
+	
+	//sort by priority so I don't have to do it later.
+	mutex_node* tmp;
+	mutex_node* tmp2;
+	
+}
+static void enqueue(queue_t* input_queue, processDescriptor* input_process){
 	
 	input_process->next = NULL;
-	
-	
+
 	if(input_queue->head == NULL){
-		
+
 		input_queue->head = input_process;
 		input_queue->tail = input_process;
-	}
-	else{
+
+	} else {
 		
 		input_queue->tail->next = input_process;
 		input_queue->tail = input_process;
 		
 	}
-	
-	
 }
-static void enqueue_sleep(queue_t* input_queue, sleepnode* input_sleepnode){
+
+static void enqueue_sleep(sleep_queue* input_queue, sleep_node* input_sleepnode){
 	
-	sleepnode* tmp = NULL;
-	sleepnode* tmp2 = NULL;
+	sleep_node* tmp = NULL;
+	sleep_node* tmp2 = NULL;
 	TICK before;
 	TICK after;
 	
 	if(input_queue->head == NULL){
 		
-		input_queue->head = input_sleepnode->task;
-		input_queue->tail = input_sleepnode->task;
+		input_queue->head = input_sleepnode;
+		input_queue->tail = input_sleepnode;
 		PORTL |= (1<< DDL1);
-	}
-	else{
+
+	} else {
 		
-		before = input_queue->head->ticks;
+		before = input_queue->head->task->ticks;
+		after = input_queue->head->next->task->ticks;
 		
-		after = input_queue->head->next->ticks;
-	
-		
-		if (input_sleepnode->task->ticks > before)
-		{
-			
+		if (input_sleepnode->task->ticks > before){
 			tmp = input_queue->head;
 			input_queue->head = input_sleepnode;
 			input_sleepnode->next = tmp;
-			
-		}
-		else{
-			for(tmp = input_queue->head;tmp->next != NULL; tmp=tmp->next)
-			{
-				
+
+		} else {
+
+			for(tmp = input_queue->head; tmp->next != NULL; tmp=tmp->next){
 				before = after;
 				after = tmp->task->next->ticks;
 			}
 				
-				if (input_sleepnode->task->ticks >= before && input_sleepnode->task->ticks  <= after)
+			if (input_sleepnode->task->ticks >= before && input_sleepnode->task->ticks  <= after) {
+				tmp2 = tmp;
+				tmp->next = input_sleepnode;
+				input_sleepnode->next = tmp2;
 				
-				{
-					tmp2 = tmp;
-					
-					tmp->next = input_sleepnode;
-					input_sleepnode->next = tmp2;
-					
-					
-				}
-				else if(tmp->next == NULL && tmp->task->ticks <= input_sleepnode->task->ticks){
+			} else if (tmp->next == NULL && tmp->task->ticks <= input_sleepnode->task->ticks) {
 					
 					input_queue->tail->next = input_sleepnode;
 					input_queue->tail = input_sleepnode;
 					
-				}
-				
-				
-				
-			}
+			}	
 		}
-		
+	}		
+}
 	
-		
-	}
+static processDescriptor* dequeue(queue_t* input_queue){
+	processDescriptor* processpointer = input_queue->head;
 	
-	
+	if(input_queue->head != NULL) {
 
-
-
-static ProcessDescriptor* dequeue(queue_t* input_queue){
-	
-	ProcessDescriptor* processpointer = input_queue->head;
-	
-	if(input_queue->head != NULL)
-	{
 		input_queue->head = input_queue->head->next;
 		processpointer->next = NULL;
 		
 	}
-	
 	return processpointer;
 }
 
+/* ****************************************** TODO ****************************************************
+ * We need to add a check for the suspension flag, which would prevent it from being selected to run
+ */
 static void new_dispatch()
 {
-	if (Cp != RUNNING || Cp == idle_task ){
+	if (Cp->state != RUNNING || Cp == idle_task ){
 		
-		if (system_tasks.head != NULL)
-		{
+		if (system_tasks.head != NULL) {
+
 			Cp = dequeue(&system_tasks);
-		}
-		else if (!slot_task_finished && PT > 0 ) // There is some more to add here, but I don't know what they're doing
-		{
-			// Current task equals something from the PPP array
+
+		} else if (!slot_task_finished && PT > 0 ) { // There is some more to add here, but I don't know what they're doing
 			
-		}
-		
-		else if(Round_Robin.head != NULL){
+      // Current task equals something from the PPP array
+			
+		} else if(Round_Robin.head != NULL) {
 			
 			Cp = dequeue(&Round_Robin);
-		}
-		else{
+
+		} else{
 		
 			Cp = idle_task;
 		}
-		
 	}
 	Cp->state = RUNNING;
-	
 }
 
 
@@ -430,8 +413,6 @@ static void new_dispatch()
   * This internal kernel function is a part of the "scheduler". It chooses the 
   * next task to run, i.e., Cp.
   */
-
-
 static void Dispatch()
 {
      /* find the next READY task
@@ -461,44 +442,42 @@ static void Next_Kernel_Request()
    Dispatch();  /* select a new task to run */
 
    while(1) {
-       Cp->request = NONE; /* clear its request */
-
-       /* activate this newly selected task */
-       CurrentSp = Cp->sp;
-       Exit_Kernel();    /* or CSwitch() */
+       Cp->request = NONE;              // Clear its request
+       CurrentSp = Cp->sp;              // Active this newly selected task
+       Exit_Kernel();                   // Or C-Switch
 
        /* if this task makes a system call, it will return to here! */
 
-        /* save the Cp's stack pointer */
-       Cp->sp = CurrentSp;
+       Cp->sp = CurrentSp;              // Save the Cp's stack pointer
 
        switch(Cp->request){
        case CREATE:
            Kernel_Create_Task( Cp->code );
            break;
        case NEXT:
-	   case NONE:
-           /* NONE could be caused by a timer interrupt */
+	     case NONE:                      // Could be caused by timer interrupt
           Cp->state = READY;
           Dispatch();
           break;
+		   case SUSPEND:
+    			Cp->susp = 1;
+    			if (Cp->state == RUNNING){
+    				Cp->state = READY;
+    			}
+          break;
+        case RESUME:
+          Cp->susp = 0;
+          break;
        case TERMINATE:
-          /* deallocate all resources used by this task */
-          Cp->state = DEAD;
+          Cp->state = DEAD;           // Deallocate all resources used by this task
           Dispatch();
           break;
        default:
-          /* Houston! we have a problem here! */
-          break;
+         
+          break;                     // PROBLEM
        }
     } 
 }
-
-
-/*================
-  * RTOS  API  and Stubs
-  *================
-  */
 
 /**
   * This function initializes the RTOS and must be called before any other
@@ -506,21 +485,22 @@ static void Next_Kernel_Request()
   */
 void OS_Init() 
 {
-   int x;
+  int x;
 	DDRA = (1<<PA0);
 	DDRB = (1<<DDB7);
 	DDRL |= (1<<DDL1);// pin 48 test
-	
 	DDRA = (1<<PA1);
 	PORTA &= ~(1<<PA1);
-   Tasks = 0;
-   KernelActive = 0;
-   NextP = 0;
+
+  Tasks = 0;
+  KernelActive = 0;
+  NextP = 0;
+
 	//Reminder: Clear the memory for the task on creation.
-   for (x = 0; x < MAXPROCESS; x++) {
-      memset(&(Process[x]),0,sizeof(ProcessDescriptor));
-      Process[x].state = DEAD;
-   }
+  for (x = 0; x < MAXPROCESS; x++) {
+    memset(&(Process[x]),0,sizeof(processDescriptor));
+    Process[x].state = DEAD;
+  }
 }
 
 
@@ -570,16 +550,6 @@ void Task_Next()
      Enter_Kernel();
   }
 }
-ISR(TIMER0_COMPA_vect){
-	
-	Disable_Interrupt();
-	
-	Task_Next();
-	Enable_Interrupt();
-	
-	
-}
-
 
 /**
   * The calling task terminates itself.
@@ -596,39 +566,141 @@ void Task_Terminate()
 
 void Task_Suspend(PID p)
 {
-	
-	//Suspend Task
-	
+  //Suspend Task
+  if(Cp->p == p && KernelActive){
+    Disable_Interrupt();
+    Cp->request = SUSPEND;
+    Enter_Kernel();
+  }
 }
 
-void Task_Get_Arg(PID p){
-	
-	//Get Argument
+processDescriptor* get_Task(PID p){
+  int x;
+  processDescriptor* pd = NULL;
+  for (x=0;x<MAXPROCESS;x++){
+    if (Process[x].p == p){
+      pd = &Process[x];
+      break;
+    }
+  }
+  return pd;
+}
+
+void Task_Resume(PID p){
+	processDescriptor* pd;
+	pd = get_Task(p);
+	if (pd){
+    Disable_Interrupt();
+		pd->request = RESUME;
+    Enter_Kernel();
+	}
+}
+
+int Task_Get_Arg(PID p){
+	processDescriptor* pd;
+	pd = get_Task(p);
+
+	if (pd) {
+		return pd->arg;
+	} else {
+		return 1;
+	}
 }
 
 void Task_Yield(){
 	//Yield to Priority Tasks
 }
 
+void Mutex_Lock(mutex* m, processDescriptor* input_process){
+	
+	mutex_node newNode;
+	
+	
+	newNode.task = input_process;
+	
+	if (m->locked != true) // if the mutex is unlocked
+	{
+		m->owner = m->queue->head;
+		m->locked = true;
+		m->queue->head = m->queue->head->next;
+	}
+	else{
+		
+		
+		//enqueue_mutex(&m->queue, &newNode);
+		
+		//enqueue(&m->mutex_queue,owner);
+		//owner->state = BLOCKED;
+		
+	}
+	
+}
+
+void Mutex_Unlock(mutex* m){
+	
+	if (m->queue->head != NULL) // the queue has something on it
+	
+	{
+		 m->owner = dequeue(&m->queue);
+		m->locked = true;
+		m->owner->state = READY;
+		
+		
+	}
+	else{
+		
+		m->owner = NULL;
+		m->locked = false;
+	}
+	
+	
+	
+}
+
+void Inherit_Priority(mutex m){
+	
+	//find the maximum priority in the queue
+
+	
+	
+}
+//Put the task to sleep for a certain amount of time
+//Eventually to take a clock tick parameter
+//current process can only call sleep on itself
+//Iterate through sleep queue and place in timer fashion  
 void Task_Sleep(TICK t){
-	//Put the task to sleep for a certain amount of time
-	//Eventually to take a clock tick parameter
-	
-	//current process can only call sleep on itself
-	
-	//Iterate through sleep queue and place in timer fashion
-	sleepnode newnode;
-	//Cp->sleeping = 1;
-	Cp->request = SUSPENDED;
+	sleep_node newnode;
+
 	Cp->ticks += t;
-	
 	newnode.task = Cp;
-	
 	enqueue_sleep(&sleeping_tasks, &newnode);
-	
-	//Task_Suspend(Cp->p);
-	//Task_Terminate();
-	
+	Task_Suspend(Cp->p);
+}
+
+// System timer that interrupts every 10 ms
+void TIMER3_COMPA_vect(void){
+  int tasksRemain = 1;										// Condition variable
+  sleep_node sleeping_task;
+  sleeping_task.task = &sleeping_tasks.head->task;
+  
+  if (sleeping_task.task != NULL){
+    while (tasksRemain){						
+      sleeping_task.task->ticks -= 1;
+      
+      if (sleeping_task.task->ticks == 0){
+        Disable_Interrupt();
+        sleeping_task.task->request = RESUME;
+        Enter_Kernel();
+        break;
+      }
+	  
+  	  if (sleeping_task.next) {
+  		 sleeping_task = *sleeping_task.next;
+  	  } else {
+  		  tasksRemain = 0;									// We're done
+      }
+    }
+  }
 }
 
 
@@ -686,20 +758,11 @@ void Pong()
   */
 void main() 
 {
-	
    OS_Init();
    Task_Create( Ping, 8, 8 );
-   
    Task_Create( Pong, 8, 8 );
-   
-  
    OS_Start();
- 
-    
-   
-
-   
+}
 
   
-}
 

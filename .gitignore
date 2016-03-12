@@ -1,3 +1,10 @@
+# Project files
+Project2.elf
+Project2.hex
+Project2.lss
+Project2.map
+Project2.srec
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
