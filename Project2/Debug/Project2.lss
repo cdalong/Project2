@@ -3,31 +3,31 @@ Project2.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .data         00000000  00800200  00800200  00000640  2**0
+  0 .data         00000000  00800200  00800200  00000686  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  1 .text         000005cc  00000000  00000000  00000074  2**1
+  1 .text         00000612  00000000  00000000  00000074  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .bss          000008c4  00800200  00800200  00000640  2**0
+  2 .bss          000008b4  00800200  00800200  00000686  2**0
                   ALLOC
-  3 .comment      00000030  00000000  00000000  00000640  2**0
+  3 .comment      00000030  00000000  00000000  00000686  2**0
                   CONTENTS, READONLY
-  4 .note.gnu.avr.deviceinfo 00000040  00000000  00000000  00000670  2**2
+  4 .note.gnu.avr.deviceinfo 00000040  00000000  00000000  000006b8  2**2
                   CONTENTS, READONLY
-  5 .debug_aranges 000000c8  00000000  00000000  000006b0  2**3
+  5 .debug_aranges 000000c8  00000000  00000000  000006f8  2**3
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_info   000009b2  00000000  00000000  00000778  2**0
+  6 .debug_info   000009f8  00000000  00000000  000007c0  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_abbrev 00000358  00000000  00000000  0000112a  2**0
+  7 .debug_abbrev 00000369  00000000  00000000  000011b8  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_line   00000619  00000000  00000000  00001482  2**0
+  8 .debug_line   0000066d  00000000  00000000  00001521  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_frame  00000154  00000000  00000000  00001a9c  2**2
+  9 .debug_frame  00000168  00000000  00000000  00001b90  2**2
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_str    000004a2  00000000  00000000  00001bf0  2**0
+ 10 .debug_str    000004a4  00000000  00000000  00001cf8  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_loc    000006ec  00000000  00000000  00002092  2**0
+ 11 .debug_loc    0000078b  00000000  00000000  0000219c  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_ranges 000000b0  00000000  00000000  0000277e  2**0
+ 12 .debug_ranges 000000b0  00000000  00000000  00002927  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -97,7 +97,7 @@ Disassembly of section .text:
   7a:	00 00       	nop
   7c:	45 c0       	rjmp	.+138    	; 0x108 <__bad_interrupt>
   7e:	00 00       	nop
-  80:	8b c2       	rjmp	.+1302   	; 0x598 <__vector_32>
+  80:	89 c2       	rjmp	.+1298   	; 0x594 <__vector_32>
   82:	00 00       	nop
   84:	41 c0       	rjmp	.+130    	; 0x108 <__bad_interrupt>
   86:	00 00       	nop
@@ -168,11 +168,11 @@ Disassembly of section .text:
   fc:	1d 92       	st	X+, r1
 
 000000fe <.do_clear_bss_start>:
-  fe:	a4 3c       	cpi	r26, 0xC4	; 196
+  fe:	a4 3b       	cpi	r26, 0xB4	; 180
  100:	b2 07       	cpc	r27, r18
  102:	e1 f7       	brne	.-8      	; 0xfc <.do_clear_bss_loop>
- 104:	52 d2       	rcall	.+1188   	; 0x5aa <main>
- 106:	60 c2       	rjmp	.+1216   	; 0x5c8 <_exit>
+ 104:	75 d2       	rcall	.+1258   	; 0x5f0 <main>
+ 106:	83 c2       	rjmp	.+1286   	; 0x60e <_exit>
 
 00000108 <__bad_interrupt>:
  108:	7b cf       	rjmp	.-266    	; 0x0 <__vectors>
@@ -216,10 +216,10 @@ Disassembly of section .text:
  150:	ff 93       	push	r31
  152:	ed b7       	in	r30, 0x3d	; 61
  154:	fe b7       	in	r31, 0x3e	; 62
- 156:	e0 93 c2 0a 	sts	0x0AC2, r30
- 15a:	f0 93 c3 0a 	sts	0x0AC3, r31
- 15e:	e0 91 c0 0a 	lds	r30, 0x0AC0
- 162:	f0 91 c1 0a 	lds	r31, 0x0AC1
+ 156:	e0 93 b2 0a 	sts	0x0AB2, r30
+ 15a:	f0 93 b3 0a 	sts	0x0AB3, r31
+ 15e:	e0 91 b0 0a 	lds	r30, 0x0AB0
+ 162:	f0 91 b1 0a 	lds	r31, 0x0AB1
  166:	ed bf       	out	0x3d, r30	; 61
  168:	fe bf       	out	0x3e, r31	; 62
  16a:	ff 91       	pop	r31
@@ -299,10 +299,10 @@ Disassembly of section .text:
  1fa:	ff 93       	push	r31
  1fc:	ed b7       	in	r30, 0x3d	; 61
  1fe:	fe b7       	in	r31, 0x3e	; 62
- 200:	e0 93 c0 0a 	sts	0x0AC0, r30
- 204:	f0 93 c1 0a 	sts	0x0AC1, r31
- 208:	e0 91 c2 0a 	lds	r30, 0x0AC2
- 20c:	f0 91 c3 0a 	lds	r31, 0x0AC3
+ 200:	e0 93 b0 0a 	sts	0x0AB0, r30
+ 204:	f0 93 b1 0a 	sts	0x0AB1, r31
+ 208:	e0 91 b2 0a 	lds	r30, 0x0AB2
+ 20c:	f0 91 b3 0a 	lds	r31, 0x0AB3
  210:	ed bf       	out	0x3d, r30	; 61
  212:	fe bf       	out	0x3e, r31	; 62
  214:	ff 91       	pop	r31
@@ -344,13 +344,13 @@ Disassembly of section .text:
  25c:	08 95       	ret
 
 0000025e <Dispatch>:
+
+	Cp->ticks += t;
 	newnode.task = Cp;
 	enqueue_sleep(&sleeping_tasks, &newnode);
-	Task_Suspend(Cp->PID);
-	//current process can only call sleep on itself
-	//Iterate through sleep queue and place in timer fashion	
+	Task_Suspend(Cp->p);
 }
- 25e:	26 e1       	ldi	r18, 0x16	; 22
+ 25e:	24 e1       	ldi	r18, 0x14	; 20
  260:	31 e0       	ldi	r19, 0x01	; 1
  262:	0b c0       	rjmp	.+22     	; 0x27a <Dispatch+0x1c>
  264:	80 91 04 02 	lds	r24, 0x0204
@@ -369,14 +369,14 @@ Disassembly of section .text:
  28a:	92 9f       	mul	r25, r18
  28c:	f0 0d       	add	r31, r0
  28e:	11 24       	eor	r1, r1
- 290:	e0 5f       	subi	r30, 0xF0	; 240
+ 290:	e2 5f       	subi	r30, 0xF2	; 242
  292:	fc 4f       	sbci	r31, 0xFC	; 252
  294:	80 81       	ld	r24, Z
  296:	81 30       	cpi	r24, 0x01	; 1
  298:	29 f7       	brne	.-54     	; 0x264 <Dispatch+0x6>
  29a:	20 91 04 02 	lds	r18, 0x0204
  29e:	30 91 05 02 	lds	r19, 0x0205
- 2a2:	86 e1       	ldi	r24, 0x16	; 22
+ 2a2:	84 e1       	ldi	r24, 0x14	; 20
  2a4:	91 e0       	ldi	r25, 0x01	; 1
  2a6:	28 9f       	mul	r18, r24
  2a8:	f0 01       	movw	r30, r0
@@ -385,14 +385,14 @@ Disassembly of section .text:
  2ae:	38 9f       	mul	r19, r24
  2b0:	f0 0d       	add	r31, r0
  2b2:	11 24       	eor	r1, r1
- 2b4:	e4 5f       	subi	r30, 0xF4	; 244
+ 2b4:	e6 5f       	subi	r30, 0xF6	; 246
  2b6:	fd 4f       	sbci	r31, 0xFD	; 253
- 2b8:	f0 93 0b 02 	sts	0x020B, r31
- 2bc:	e0 93 0a 02 	sts	0x020A, r30
+ 2b8:	f0 93 ab 0a 	sts	0x0AAB, r31
+ 2bc:	e0 93 aa 0a 	sts	0x0AAA, r30
  2c0:	80 81       	ld	r24, Z
  2c2:	91 81       	ldd	r25, Z+1	; 0x01
- 2c4:	90 93 c1 0a 	sts	0x0AC1, r25
- 2c8:	80 93 c0 0a 	sts	0x0AC0, r24
+ 2c4:	90 93 b1 0a 	sts	0x0AB1, r25
+ 2c8:	80 93 b0 0a 	sts	0x0AB0, r24
  2cc:	ec 5f       	subi	r30, 0xFC	; 252
  2ce:	fe 4f       	sbci	r31, 0xFE	; 254
  2d0:	82 e0       	ldi	r24, 0x02	; 2
@@ -412,9 +412,9 @@ Disassembly of section .text:
  2f4:	89 2b       	or	r24, r25
  2f6:	51 f0       	breq	.+20     	; 0x30c <Task_Terminate+0x20>
  2f8:	f8 94       	cli
- 2fa:	e0 91 0a 02 	lds	r30, 0x020A
- 2fe:	f0 91 0b 02 	lds	r31, 0x020B
- 302:	e3 5f       	subi	r30, 0xF3	; 243
+ 2fa:	e0 91 aa 0a 	lds	r30, 0x0AAA
+ 2fe:	f0 91 ab 0a 	lds	r31, 0x0AAB
+ 302:	e7 5f       	subi	r30, 0xF7	; 247
  304:	fe 4f       	sbci	r31, 0xFE	; 254
  306:	88 e0       	ldi	r24, 0x08	; 8
  308:	80 83       	st	Z, r24
@@ -453,12 +453,12 @@ Disassembly of section .text:
  346:	dc 01       	movw	r26, r24
  348:	2d 93       	st	X+, r18
  34a:	3c 93       	st	X, r19
- 34c:	3f 96       	adiw	r30, 0x0f	; 15
+ 34c:	3b 96       	adiw	r30, 0x0b	; 11
  34e:	60 83       	st	Z, r22
  350:	71 83       	std	Z+1, r23	; 0x01
  352:	32 96       	adiw	r30, 0x02	; 2
  354:	10 82       	st	Z, r1
- 356:	39 97       	sbiw	r30, 0x09	; 9
+ 356:	35 97       	sbiw	r30, 0x05	; 5
  358:	81 e0       	ldi	r24, 0x01	; 1
  35a:	80 83       	st	Z, r24
  35c:	08 95       	ret
@@ -469,10 +469,10 @@ Disassembly of section .text:
  364:	90 91 01 02 	lds	r25, 0x0201
  368:	08 97       	sbiw	r24, 0x08	; 8
  36a:	51 f1       	breq	.+84     	; 0x3c0 <Kernel_Create_Task+0x62>
- 36c:	80 91 10 03 	lds	r24, 0x0310
+ 36c:	80 91 0e 03 	lds	r24, 0x030E
  370:	88 23       	and	r24, r24
  372:	79 f0       	breq	.+30     	; 0x392 <Kernel_Create_Task+0x34>
- 374:	e6 e2       	ldi	r30, 0x26	; 38
+ 374:	e2 e2       	ldi	r30, 0x22	; 34
  376:	f4 e0       	ldi	r31, 0x04	; 4
  378:	21 e0       	ldi	r18, 0x01	; 1
  37a:	30 e0       	ldi	r19, 0x00	; 0
@@ -481,7 +481,7 @@ Disassembly of section .text:
  380:	51 f0       	breq	.+20     	; 0x396 <Kernel_Create_Task+0x38>
  382:	2f 5f       	subi	r18, 0xFF	; 255
  384:	3f 4f       	sbci	r19, 0xFF	; 255
- 386:	ea 5e       	subi	r30, 0xEA	; 234
+ 386:	ec 5e       	subi	r30, 0xEC	; 236
  388:	fe 4f       	sbci	r31, 0xFE	; 254
  38a:	28 30       	cpi	r18, 0x08	; 8
  38c:	31 05       	cpc	r19, r1
@@ -494,7 +494,7 @@ Disassembly of section .text:
  39e:	01 96       	adiw	r24, 0x01	; 1
  3a0:	90 93 01 02 	sts	0x0201, r25
  3a4:	80 93 00 02 	sts	0x0200, r24
- 3a8:	46 e1       	ldi	r20, 0x16	; 22
+ 3a8:	44 e1       	ldi	r20, 0x14	; 20
  3aa:	51 e0       	ldi	r21, 0x01	; 1
  3ac:	24 9f       	mul	r18, r20
  3ae:	c0 01       	movw	r24, r0
@@ -503,7 +503,7 @@ Disassembly of section .text:
  3b4:	34 9f       	mul	r19, r20
  3b6:	90 0d       	add	r25, r0
  3b8:	11 24       	eor	r1, r1
- 3ba:	84 5f       	subi	r24, 0xF4	; 244
+ 3ba:	86 5f       	subi	r24, 0xF6	; 246
  3bc:	9d 4f       	sbci	r25, 0xFD	; 253
  3be:	a7 cf       	rjmp	.-178    	; 0x30e <Kernel_Create_Task_At>
  3c0:	08 95       	ret
@@ -527,11 +527,11 @@ Disassembly of section .text:
  3e6:	10 92 02 02 	sts	0x0202, r1
  3ea:	10 92 05 02 	sts	0x0205, r1
  3ee:	10 92 04 02 	sts	0x0204, r1
- 3f2:	ec e0       	ldi	r30, 0x0C	; 12
+ 3f2:	ea e0       	ldi	r30, 0x0A	; 10
  3f4:	f2 e0       	ldi	r31, 0x02	; 2
- 3f6:	2c eb       	ldi	r18, 0xBC	; 188
+ 3f6:	2a ea       	ldi	r18, 0xAA	; 170
  3f8:	3a e0       	ldi	r19, 0x0A	; 10
- 3fa:	86 e1       	ldi	r24, 0x16	; 22
+ 3fa:	84 e1       	ldi	r24, 0x14	; 20
  3fc:	91 e0       	ldi	r25, 0x01	; 1
  3fe:	df 01       	movw	r26, r30
  400:	ac 01       	movw	r20, r24
@@ -543,7 +543,7 @@ Disassembly of section .text:
  40c:	ac 5f       	subi	r26, 0xFC	; 252
  40e:	be 4f       	sbci	r27, 0xFE	; 254
  410:	1c 92       	st	X, r1
- 412:	ea 5e       	subi	r30, 0xEA	; 234
+ 412:	ec 5e       	subi	r30, 0xEC	; 236
  414:	fe 4f       	sbci	r31, 0xFE	; 254
  416:	e2 17       	cp	r30, r18
  418:	f3 07       	cpc	r31, r19
@@ -558,12 +558,12 @@ Disassembly of section .text:
  428:	90 91 03 02 	lds	r25, 0x0203
  42c:	89 2b       	or	r24, r25
  42e:	09 f0       	breq	.+2      	; 0x432 <OS_Start+0x14>
- 430:	63 c0       	rjmp	.+198    	; 0x4f8 <OS_Start+0xda>
+ 430:	61 c0       	rjmp	.+194    	; 0x4f4 <OS_Start+0xd6>
  432:	80 91 00 02 	lds	r24, 0x0200
  436:	90 91 01 02 	lds	r25, 0x0201
  43a:	89 2b       	or	r24, r25
  43c:	09 f4       	brne	.+2      	; 0x440 <OS_Start+0x22>
- 43e:	5c c0       	rjmp	.+184    	; 0x4f8 <OS_Start+0xda>
+ 43e:	5a c0       	rjmp	.+180    	; 0x4f4 <OS_Start+0xd6>
  440:	f8 94       	cli
  442:	81 e0       	ldi	r24, 0x01	; 1
  444:	90 e0       	ldi	r25, 0x00	; 0
@@ -573,25 +573,25 @@ Disassembly of section .text:
  450:	c1 e0       	ldi	r28, 0x01	; 1
  452:	d0 e0       	ldi	r29, 0x00	; 0
  454:	11 e0       	ldi	r17, 0x01	; 1
- 456:	e0 91 0a 02 	lds	r30, 0x020A
- 45a:	f0 91 0b 02 	lds	r31, 0x020B
+ 456:	e0 91 aa 0a 	lds	r30, 0x0AAA
+ 45a:	f0 91 ab 0a 	lds	r31, 0x0AAB
  45e:	df 01       	movw	r26, r30
- 460:	a3 5f       	subi	r26, 0xF3	; 243
+ 460:	a7 5f       	subi	r26, 0xF7	; 247
  462:	be 4f       	sbci	r27, 0xFE	; 254
  464:	1c 92       	st	X, r1
  466:	80 81       	ld	r24, Z
  468:	91 81       	ldd	r25, Z+1	; 0x01
- 46a:	90 93 c1 0a 	sts	0x0AC1, r25
- 46e:	80 93 c0 0a 	sts	0x0AC0, r24
+ 46a:	90 93 b1 0a 	sts	0x0AB1, r25
+ 46e:	80 93 b0 0a 	sts	0x0AB0, r24
  472:	4b de       	rcall	.-874    	; 0x10a <CSwitch>
- 474:	e0 91 0a 02 	lds	r30, 0x020A
- 478:	f0 91 0b 02 	lds	r31, 0x020B
- 47c:	80 91 c0 0a 	lds	r24, 0x0AC0
- 480:	90 91 c1 0a 	lds	r25, 0x0AC1
+ 474:	e0 91 aa 0a 	lds	r30, 0x0AAA
+ 478:	f0 91 ab 0a 	lds	r31, 0x0AAB
+ 47c:	80 91 b0 0a 	lds	r24, 0x0AB0
+ 480:	90 91 b1 0a 	lds	r25, 0x0AB1
  484:	91 83       	std	Z+1, r25	; 0x01
  486:	80 83       	st	Z, r24
  488:	df 01       	movw	r26, r30
- 48a:	a3 5f       	subi	r26, 0xF3	; 243
+ 48a:	a7 5f       	subi	r26, 0xF7	; 247
  48c:	be 4f       	sbci	r27, 0xFE	; 254
  48e:	8c 91       	ld	r24, X
  490:	82 30       	cpi	r24, 0x02	; 2
@@ -603,13 +603,13 @@ Disassembly of section .text:
  49c:	41 f0       	breq	.+16     	; 0x4ae <OS_Start+0x90>
  49e:	db cf       	rjmp	.-74     	; 0x456 <OS_Start+0x38>
  4a0:	86 30       	cpi	r24, 0x06	; 6
- 4a2:	e9 f0       	breq	.+58     	; 0x4de <OS_Start+0xc0>
+ 4a2:	f1 f0       	breq	.+60     	; 0x4e0 <OS_Start+0xc2>
  4a4:	88 30       	cpi	r24, 0x08	; 8
- 4a6:	19 f1       	breq	.+70     	; 0x4ee <OS_Start+0xd0>
+ 4a6:	09 f1       	breq	.+66     	; 0x4ea <OS_Start+0xcc>
  4a8:	84 30       	cpi	r24, 0x04	; 4
  4aa:	a9 f6       	brne	.-86     	; 0x456 <OS_Start+0x38>
  4ac:	0b c0       	rjmp	.+22     	; 0x4c4 <OS_Start+0xa6>
- 4ae:	e5 5f       	subi	r30, 0xF5	; 245
+ 4ae:	e9 5f       	subi	r30, 0xF9	; 249
  4b0:	fe 4f       	sbci	r31, 0xFE	; 254
  4b2:	80 81       	ld	r24, Z
  4b4:	91 81       	ldd	r25, Z+1	; 0x01
@@ -621,154 +621,212 @@ Disassembly of section .text:
  4c0:	ce de       	rcall	.-612    	; 0x25e <Dispatch>
  4c2:	c9 cf       	rjmp	.-110    	; 0x456 <OS_Start+0x38>
  4c4:	df 01       	movw	r26, r30
- 4c6:	ac 5e       	subi	r26, 0xEC	; 236
+ 4c6:	a0 5f       	subi	r26, 0xF0	; 240
  4c8:	be 4f       	sbci	r27, 0xFE	; 254
  4ca:	11 96       	adiw	r26, 0x01	; 1
  4cc:	dc 93       	st	X, r29
  4ce:	ce 93       	st	-X, r28
- 4d0:	50 97       	sbiw	r26, 0x10	; 16
+ 4d0:	1c 97       	sbiw	r26, 0x0c	; 12
  4d2:	8c 91       	ld	r24, X
  4d4:	82 30       	cpi	r24, 0x02	; 2
- 4d6:	29 f4       	brne	.+10     	; 0x4e2 <OS_Start+0xc4>
- 4d8:	1c 93       	st	X, r17
- 4da:	df 01       	movw	r26, r30
- 4dc:	03 c0       	rjmp	.+6      	; 0x4e4 <OS_Start+0xc6>
- 4de:	df 01       	movw	r26, r30
- 4e0:	01 c0       	rjmp	.+2      	; 0x4e4 <OS_Start+0xc6>
- 4e2:	df 01       	movw	r26, r30
- 4e4:	ac 5e       	subi	r26, 0xEC	; 236
- 4e6:	be 4f       	sbci	r27, 0xFE	; 254
- 4e8:	11 96       	adiw	r26, 0x01	; 1
- 4ea:	1c 92       	st	X, r1
- 4ec:	1e 92       	st	-X, r1
- 4ee:	ec 5f       	subi	r30, 0xFC	; 252
- 4f0:	fe 4f       	sbci	r31, 0xFE	; 254
- 4f2:	10 82       	st	Z, r1
- 4f4:	b4 de       	rcall	.-664    	; 0x25e <Dispatch>
- 4f6:	af cf       	rjmp	.-162    	; 0x456 <OS_Start+0x38>
- 4f8:	df 91       	pop	r29
- 4fa:	cf 91       	pop	r28
- 4fc:	1f 91       	pop	r17
- 4fe:	08 95       	ret
+ 4d6:	09 f0       	breq	.+2      	; 0x4da <OS_Start+0xbc>
+ 4d8:	be cf       	rjmp	.-132    	; 0x456 <OS_Start+0x38>
+ 4da:	fd 01       	movw	r30, r26
+ 4dc:	10 83       	st	Z, r17
+ 4de:	bb cf       	rjmp	.-138    	; 0x456 <OS_Start+0x38>
+ 4e0:	e0 5f       	subi	r30, 0xF0	; 240
+ 4e2:	fe 4f       	sbci	r31, 0xFE	; 254
+ 4e4:	11 82       	std	Z+1, r1	; 0x01
+ 4e6:	10 82       	st	Z, r1
+ 4e8:	b6 cf       	rjmp	.-148    	; 0x456 <OS_Start+0x38>
+ 4ea:	ec 5f       	subi	r30, 0xFC	; 252
+ 4ec:	fe 4f       	sbci	r31, 0xFE	; 254
+ 4ee:	10 82       	st	Z, r1
+ 4f0:	b6 de       	rcall	.-660    	; 0x25e <Dispatch>
+ 4f2:	b1 cf       	rjmp	.-158    	; 0x456 <OS_Start+0x38>
+ 4f4:	df 91       	pop	r29
+ 4f6:	cf 91       	pop	r28
+ 4f8:	1f 91       	pop	r17
+ 4fa:	08 95       	ret
 
-00000500 <Task_Create>:
- 500:	20 91 02 02 	lds	r18, 0x0202
- 504:	30 91 03 02 	lds	r19, 0x0203
- 508:	23 2b       	or	r18, r19
- 50a:	79 f0       	breq	.+30     	; 0x52a <Task_Create+0x2a>
- 50c:	f8 94       	cli
- 50e:	20 91 0a 02 	lds	r18, 0x020A
- 512:	30 91 0b 02 	lds	r19, 0x020B
- 516:	f9 01       	movw	r30, r18
- 518:	e3 5f       	subi	r30, 0xF3	; 243
- 51a:	fe 4f       	sbci	r31, 0xFE	; 254
- 51c:	41 e0       	ldi	r20, 0x01	; 1
- 51e:	40 83       	st	Z, r20
- 520:	32 97       	sbiw	r30, 0x02	; 2
- 522:	91 83       	std	Z+1, r25	; 0x01
- 524:	80 83       	st	Z, r24
- 526:	46 ce       	rjmp	.-884    	; 0x1b4 <Enter_Kernel>
+000004fc <Task_Create>:
+ 4fc:	20 91 02 02 	lds	r18, 0x0202
+ 500:	30 91 03 02 	lds	r19, 0x0203
+ 504:	23 2b       	or	r18, r19
+ 506:	79 f0       	breq	.+30     	; 0x526 <Task_Create+0x2a>
+ 508:	f8 94       	cli
+ 50a:	20 91 aa 0a 	lds	r18, 0x0AAA
+ 50e:	30 91 ab 0a 	lds	r19, 0x0AAB
+ 512:	f9 01       	movw	r30, r18
+ 514:	e7 5f       	subi	r30, 0xF7	; 247
+ 516:	fe 4f       	sbci	r31, 0xFE	; 254
+ 518:	41 e0       	ldi	r20, 0x01	; 1
+ 51a:	40 83       	st	Z, r20
+ 51c:	32 97       	sbiw	r30, 0x02	; 2
+ 51e:	91 83       	std	Z+1, r25	; 0x01
+ 520:	80 83       	st	Z, r24
+ 522:	48 ce       	rjmp	.-880    	; 0x1b4 <Enter_Kernel>
+ 524:	08 95       	ret
+ 526:	1b cf       	rjmp	.-458    	; 0x35e <Kernel_Create_Task>
  528:	08 95       	ret
- 52a:	19 cf       	rjmp	.-462    	; 0x35e <Kernel_Create_Task>
- 52c:	08 95       	ret
 
-0000052e <Task_Next>:
- 52e:	80 91 02 02 	lds	r24, 0x0202
- 532:	90 91 03 02 	lds	r25, 0x0203
- 536:	89 2b       	or	r24, r25
- 538:	51 f0       	breq	.+20     	; 0x54e <Task_Next+0x20>
- 53a:	f8 94       	cli
- 53c:	e0 91 0a 02 	lds	r30, 0x020A
- 540:	f0 91 0b 02 	lds	r31, 0x020B
- 544:	e3 5f       	subi	r30, 0xF3	; 243
- 546:	fe 4f       	sbci	r31, 0xFE	; 254
- 548:	82 e0       	ldi	r24, 0x02	; 2
- 54a:	80 83       	st	Z, r24
- 54c:	33 ce       	rjmp	.-922    	; 0x1b4 <Enter_Kernel>
- 54e:	08 95       	ret
+0000052a <Task_Next>:
+ 52a:	80 91 02 02 	lds	r24, 0x0202
+ 52e:	90 91 03 02 	lds	r25, 0x0203
+ 532:	89 2b       	or	r24, r25
+ 534:	51 f0       	breq	.+20     	; 0x54a <Task_Next+0x20>
+ 536:	f8 94       	cli
+ 538:	e0 91 aa 0a 	lds	r30, 0x0AAA
+ 53c:	f0 91 ab 0a 	lds	r31, 0x0AAB
+ 540:	e7 5f       	subi	r30, 0xF7	; 247
+ 542:	fe 4f       	sbci	r31, 0xFE	; 254
+ 544:	82 e0       	ldi	r24, 0x02	; 2
+ 546:	80 83       	st	Z, r24
+ 548:	35 ce       	rjmp	.-918    	; 0x1b4 <Enter_Kernel>
+ 54a:	08 95       	ret
 
-00000550 <Ping>:
- 550:	d0 e0       	ldi	r29, 0x00	; 0
- 552:	cd e7       	ldi	r28, 0x7D	; 125
- 554:	10 98       	cbi	0x02, 0	; 2
- 556:	2f 98       	cbi	0x05, 7	; 5
- 558:	8d 2f       	mov	r24, r29
- 55a:	9c 2f       	mov	r25, r28
- 55c:	01 97       	sbiw	r24, 0x01	; 1
- 55e:	f1 f7       	brne	.-4      	; 0x55c <Ping+0xc>
- 560:	8d 2f       	mov	r24, r29
- 562:	9c 2f       	mov	r25, r28
- 564:	01 97       	sbiw	r24, 0x01	; 1
- 566:	f1 f7       	brne	.-4      	; 0x564 <Ping+0x14>
- 568:	8d 2f       	mov	r24, r29
- 56a:	9c 2f       	mov	r25, r28
- 56c:	01 97       	sbiw	r24, 0x01	; 1
- 56e:	f1 f7       	brne	.-4      	; 0x56c <Ping+0x1c>
- 570:	de df       	rcall	.-68     	; 0x52e <Task_Next>
- 572:	f0 cf       	rjmp	.-32     	; 0x554 <Ping+0x4>
+0000054c <Ping>:
+ 54c:	d0 e0       	ldi	r29, 0x00	; 0
+ 54e:	cd e7       	ldi	r28, 0x7D	; 125
+ 550:	10 98       	cbi	0x02, 0	; 2
+ 552:	2f 98       	cbi	0x05, 7	; 5
+ 554:	8d 2f       	mov	r24, r29
+ 556:	9c 2f       	mov	r25, r28
+ 558:	01 97       	sbiw	r24, 0x01	; 1
+ 55a:	f1 f7       	brne	.-4      	; 0x558 <Ping+0xc>
+ 55c:	8d 2f       	mov	r24, r29
+ 55e:	9c 2f       	mov	r25, r28
+ 560:	01 97       	sbiw	r24, 0x01	; 1
+ 562:	f1 f7       	brne	.-4      	; 0x560 <Ping+0x14>
+ 564:	8d 2f       	mov	r24, r29
+ 566:	9c 2f       	mov	r25, r28
+ 568:	01 97       	sbiw	r24, 0x01	; 1
+ 56a:	f1 f7       	brne	.-4      	; 0x568 <Ping+0x1c>
+ 56c:	de df       	rcall	.-68     	; 0x52a <Task_Next>
+ 56e:	f0 cf       	rjmp	.-32     	; 0x550 <Ping+0x4>
 
-00000574 <Pong>:
- 574:	d0 e0       	ldi	r29, 0x00	; 0
- 576:	cd e7       	ldi	r28, 0x7D	; 125
- 578:	10 9a       	sbi	0x02, 0	; 2
- 57a:	2f 9a       	sbi	0x05, 7	; 5
- 57c:	8d 2f       	mov	r24, r29
- 57e:	9c 2f       	mov	r25, r28
- 580:	01 97       	sbiw	r24, 0x01	; 1
- 582:	f1 f7       	brne	.-4      	; 0x580 <Pong+0xc>
- 584:	8d 2f       	mov	r24, r29
- 586:	9c 2f       	mov	r25, r28
- 588:	01 97       	sbiw	r24, 0x01	; 1
- 58a:	f1 f7       	brne	.-4      	; 0x588 <Pong+0x14>
- 58c:	8d 2f       	mov	r24, r29
- 58e:	9c 2f       	mov	r25, r28
- 590:	01 97       	sbiw	r24, 0x01	; 1
- 592:	f1 f7       	brne	.-4      	; 0x590 <Pong+0x1c>
- 594:	cc df       	rcall	.-104    	; 0x52e <Task_Next>
- 596:	f0 cf       	rjmp	.-32     	; 0x578 <Pong+0x4>
+00000570 <Pong>:
+ 570:	d0 e0       	ldi	r29, 0x00	; 0
+ 572:	cd e7       	ldi	r28, 0x7D	; 125
+ 574:	10 9a       	sbi	0x02, 0	; 2
+ 576:	2f 9a       	sbi	0x05, 7	; 5
+ 578:	8d 2f       	mov	r24, r29
+ 57a:	9c 2f       	mov	r25, r28
+ 57c:	01 97       	sbiw	r24, 0x01	; 1
+ 57e:	f1 f7       	brne	.-4      	; 0x57c <Pong+0xc>
+ 580:	8d 2f       	mov	r24, r29
+ 582:	9c 2f       	mov	r25, r28
+ 584:	01 97       	sbiw	r24, 0x01	; 1
+ 586:	f1 f7       	brne	.-4      	; 0x584 <Pong+0x14>
+ 588:	8d 2f       	mov	r24, r29
+ 58a:	9c 2f       	mov	r25, r28
+ 58c:	01 97       	sbiw	r24, 0x01	; 1
+ 58e:	f1 f7       	brne	.-4      	; 0x58c <Pong+0x1c>
+ 590:	cc df       	rcall	.-104    	; 0x52a <Task_Next>
+ 592:	f0 cf       	rjmp	.-32     	; 0x574 <Pong+0x4>
 
-00000598 <__vector_32>:
+00000594 <__vector_32>:
 
+// System timer that interrupts every 10 ms
 void TIMER3_COMPA_vect(void){
-  struct sleep_struct* temp_node;
-  temp_node->task = sleeping_tasks.head;
- 598:	80 91 06 02 	lds	r24, 0x0206
- 59c:	90 91 07 02 	lds	r25, 0x0207
- 5a0:	90 93 01 00 	sts	0x0001, r25
- 5a4:	80 93 00 00 	sts	0x0000, r24
- 5a8:	08 95       	ret
+  int tasksRemain = 1;										// Condition variable
+  sleep_node sleeping_task;
+  sleeping_task.task = &sleeping_tasks.head->task;
+ 594:	80 91 06 02 	lds	r24, 0x0206
+ 598:	90 91 07 02 	lds	r25, 0x0207
+ 59c:	9c 01       	movw	r18, r24
+  
+  if (sleeping_task.task != NULL){
+ 59e:	00 97       	sbiw	r24, 0x00	; 0
+ 5a0:	31 f1       	breq	.+76     	; 0x5ee <__vector_32+0x5a>
+    while (tasksRemain){						
+      sleeping_task.task->ticks -= 1;
+ 5a2:	dc 01       	movw	r26, r24
+ 5a4:	ae 5f       	subi	r26, 0xFE	; 254
+ 5a6:	be 4f       	sbci	r27, 0xFE	; 254
+ 5a8:	8d 91       	ld	r24, X+
+ 5aa:	9c 91       	ld	r25, X
+ 5ac:	11 97       	sbiw	r26, 0x01	; 1
+ 5ae:	01 97       	sbiw	r24, 0x01	; 1
+ 5b0:	8d 93       	st	X+, r24
+ 5b2:	9c 93       	st	X, r25
+      
+      if (sleeping_task.task->ticks == 0){
+ 5b4:	89 2b       	or	r24, r25
+ 5b6:	41 f4       	brne	.+16     	; 0x5c8 <__vector_32+0x34>
+        Disable_Interrupt();
+ 5b8:	f8 94       	cli
+        sleeping_task.task->request = RESUME;
+ 5ba:	f9 01       	movw	r30, r18
+ 5bc:	e7 5f       	subi	r30, 0xF7	; 247
+ 5be:	fe 4f       	sbci	r31, 0xFE	; 254
+ 5c0:	86 e0       	ldi	r24, 0x06	; 6
+ 5c2:	80 83       	st	Z, r24
+        Enter_Kernel();
+ 5c4:	f7 cd       	rjmp	.-1042   	; 0x1b4 <Enter_Kernel>
+        break;
+ 5c6:	08 95       	ret
+      }
+	  
+  	  if (sleeping_task.next) {
+ 5c8:	30 97       	sbiw	r30, 0x00	; 0
+ 5ca:	89 f0       	breq	.+34     	; 0x5ee <__vector_32+0x5a>
+  		 sleeping_task = *sleeping_task.next;
+ 5cc:	20 81       	ld	r18, Z
+ 5ce:	31 81       	ldd	r19, Z+1	; 0x01
+ 5d0:	02 80       	ldd	r0, Z+2	; 0x02
+ 5d2:	f3 81       	ldd	r31, Z+3	; 0x03
+ 5d4:	e0 2d       	mov	r30, r0
+  sleep_node sleeping_task;
+  sleeping_task.task = &sleeping_tasks.head->task;
+  
+  if (sleeping_task.task != NULL){
+    while (tasksRemain){						
+      sleeping_task.task->ticks -= 1;
+ 5d6:	d9 01       	movw	r26, r18
+ 5d8:	ae 5f       	subi	r26, 0xFE	; 254
+ 5da:	be 4f       	sbci	r27, 0xFE	; 254
+ 5dc:	8d 91       	ld	r24, X+
+ 5de:	9c 91       	ld	r25, X
+ 5e0:	11 97       	sbiw	r26, 0x01	; 1
+ 5e2:	01 97       	sbiw	r24, 0x01	; 1
+ 5e4:	8d 93       	st	X+, r24
+ 5e6:	9c 93       	st	X, r25
+      
+      if (sleeping_task.task->ticks == 0){
+ 5e8:	89 2b       	or	r24, r25
+ 5ea:	71 f7       	brne	.-36     	; 0x5c8 <__vector_32+0x34>
+ 5ec:	e5 cf       	rjmp	.-54     	; 0x5b8 <__vector_32+0x24>
+ 5ee:	08 95       	ret
 
-000005aa <main>:
+000005f0 <main>:
+  * This function creates two cooperative tasks, "Ping" and "Pong". Both
   * will run forever.
   */
 void main() 
 {
-	
    OS_Init();
- 5aa:	0b df       	rcall	.-490    	; 0x3c2 <OS_Init>
+ 5f0:	e8 de       	rcall	.-560    	; 0x3c2 <OS_Init>
    Task_Create( Ping, 8, 8 );
- 5ac:	48 e0       	ldi	r20, 0x08	; 8
- 5ae:	50 e0       	ldi	r21, 0x00	; 0
- 5b0:	68 e0       	ldi	r22, 0x08	; 8
- 5b2:	88 ea       	ldi	r24, 0xA8	; 168
- 5b4:	92 e0       	ldi	r25, 0x02	; 2
- 5b6:	a4 df       	rcall	.-184    	; 0x500 <Task_Create>
-   
+ 5f2:	48 e0       	ldi	r20, 0x08	; 8
+ 5f4:	50 e0       	ldi	r21, 0x00	; 0
+ 5f6:	68 e0       	ldi	r22, 0x08	; 8
+ 5f8:	86 ea       	ldi	r24, 0xA6	; 166
+ 5fa:	92 e0       	ldi	r25, 0x02	; 2
+ 5fc:	7f df       	rcall	.-258    	; 0x4fc <Task_Create>
    Task_Create( Pong, 8, 8 );
- 5b8:	48 e0       	ldi	r20, 0x08	; 8
- 5ba:	50 e0       	ldi	r21, 0x00	; 0
- 5bc:	68 e0       	ldi	r22, 0x08	; 8
- 5be:	8a eb       	ldi	r24, 0xBA	; 186
- 5c0:	92 e0       	ldi	r25, 0x02	; 2
- 5c2:	9e df       	rcall	.-196    	; 0x500 <Task_Create>
-   
-  
+ 5fe:	48 e0       	ldi	r20, 0x08	; 8
+ 600:	50 e0       	ldi	r21, 0x00	; 0
+ 602:	68 e0       	ldi	r22, 0x08	; 8
+ 604:	88 eb       	ldi	r24, 0xB8	; 184
+ 606:	92 e0       	ldi	r25, 0x02	; 2
+ 608:	79 df       	rcall	.-270    	; 0x4fc <Task_Create>
    OS_Start();
- 5c4:	2c cf       	rjmp	.-424    	; 0x41e <OS_Start>
- 5c6:	08 95       	ret
+ 60a:	09 cf       	rjmp	.-494    	; 0x41e <OS_Start>
+ 60c:	08 95       	ret
 
-000005c8 <_exit>:
- 5c8:	f8 94       	cli
+0000060e <_exit>:
+ 60e:	f8 94       	cli
 
-000005ca <__stop_program>:
- 5ca:	ff cf       	rjmp	.-2      	; 0x5ca <__stop_program>
+00000610 <__stop_program>:
+ 610:	ff cf       	rjmp	.-2      	; 0x610 <__stop_program>
