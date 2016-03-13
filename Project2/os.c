@@ -102,8 +102,8 @@ typedef enum process_states
    RUNNING,
    BLOCKED,
    SUSPENDED,
-   SUSPENDEDBLOCKED,
-   SUSPENDEDREADY 
+   SUSP_BLOCKED,
+   SUSP_READY 
 } PROCESS_STATES;
 
 /**
@@ -116,11 +116,16 @@ typedef enum kernel_request_type
    NEXT,
    SLEEP,
    SUSPEND,
-   GETARG,
+   GET_ARG,
    RESUME,
    YIELD,
    TERMINATE
 } KERNEL_REQUEST_TYPE;
+
+typedef enum { 
+  false, 
+  true 
+} bool;
 
 /**
   * Each task is represented by a process descriptor, which contains all
@@ -154,7 +159,9 @@ typedef struct mutex_node{
 	
 	processDescriptor* task;
 	struct mutex_node* next;
-	}mutex_node;
+
+} mutex_node;
+
 typedef struct queue_t {
 
 	 processDescriptor* head;
@@ -168,28 +175,23 @@ typedef struct sleep_queue {
 	sleep_node* tail;
 	
 } sleep_queue;
+
 typedef struct mutex_queue{
 	
 	mutex_node* head;
 	mutex_node* tail;
 	
-	
-	}mutex_queue;
-typedef enum { false, 
-	         true } bool;
-			 
-
-
-
+} mutex_queue;
 
 typedef struct mutex {
 	
-	bool locked;
-	processDescriptor* owner;
-	mutex_queue* queue;
+	bool locked;                     // Indicates whether mutex is locked or not
+  int count;                       // Indicates the times it has been locked by owner (for recursive locks)
+	processDescriptor* owner;        // Task that locked the mutex
+	mutex_queue* queue;              // Queue of waiting tasks
 	//mutex_node * next;
 	
-	} mutex;
+} mutex;
 
 volatile static  processDescriptor* Cp;           // The process descriptor of the currently RUNNING task.
 static  processDescriptor Process[MAXPROCESS];    // Contains ALL process descriptors, regardless of state
@@ -300,6 +302,35 @@ static void Kernel_Create_Task( voidfuncptr f )
 
 }
 
+static void enqueue(queue_t* input_queue, processDescriptor* input_process){
+  
+  input_process->next = NULL;
+
+  if(input_queue->head == NULL){
+
+    input_queue->head = input_process;
+    input_queue->tail = input_process;
+
+  } else {
+    
+    input_queue->tail->next = input_process;
+    input_queue->tail = input_process;
+    
+  }
+}
+
+static processDescriptor* dequeue(queue_t* input_queue){
+  processDescriptor* processpointer = input_queue->head;
+  
+  if(input_queue->head != NULL) {
+
+    input_queue->head = input_queue->head->next;
+    processpointer->next = NULL;
+    
+  }
+  return processpointer;
+}
+
 static void enqueue_mutex(mutex_queue* input_queue, mutex_node* input_node){
 	
 	//sort by priority so I don't have to do it later.
@@ -307,22 +338,7 @@ static void enqueue_mutex(mutex_queue* input_queue, mutex_node* input_node){
 	mutex_node* tmp2;
 	
 }
-static void enqueue(queue_t* input_queue, processDescriptor* input_process){
-	
-	input_process->next = NULL;
 
-	if(input_queue->head == NULL){
-
-		input_queue->head = input_process;
-		input_queue->tail = input_process;
-
-	} else {
-		
-		input_queue->tail->next = input_process;
-		input_queue->tail = input_process;
-		
-	}
-}
 
 static void enqueue_sleep(sleep_queue* input_queue, sleep_node* input_sleepnode){
 	
@@ -331,19 +347,19 @@ static void enqueue_sleep(sleep_queue* input_queue, sleep_node* input_sleepnode)
 	TICK before;
 	TICK after;
 	
-	if(input_queue->head == NULL){
+	if(input_queue->head == NULL){                     // If queue is empty
 		
-		input_queue->head = input_sleepnode;
+		input_queue->head = input_sleepnode;             // New task becomes head and tail
 		input_queue->tail = input_sleepnode;
 		PORTL |= (1<< DDL1);
 
-	} else {
+	} else {                                           // If adding a task to a pre-existing queue
 		
 		before = input_queue->head->task->ticks;
 		after = input_queue->head->next->task->ticks;
 		
-		if (input_sleepnode->task->ticks > before){
-			tmp = input_queue->head;
+		if (input_sleepnode->task->ticks > before){      /* TODO - Shouldn't the highest be last? */
+  		tmp = input_queue->head;
 			input_queue->head = input_sleepnode;
 			input_sleepnode->next = tmp;
 
@@ -367,18 +383,6 @@ static void enqueue_sleep(sleep_queue* input_queue, sleep_node* input_sleepnode)
 			}	
 		}
 	}		
-}
-	
-static processDescriptor* dequeue(queue_t* input_queue){
-	processDescriptor* processpointer = input_queue->head;
-	
-	if(input_queue->head != NULL) {
-
-		input_queue->head = input_queue->head->next;
-		processpointer->next = NULL;
-		
-	}
-	return processpointer;
 }
 
 /* ****************************************** TODO ****************************************************
@@ -574,17 +578,6 @@ void Task_Suspend(PID p)
   }
 }
 
-processDescriptor* get_Task(PID p){
-  int x;
-  processDescriptor* pd = NULL;
-  for (x=0;x<MAXPROCESS;x++){
-    if (Process[x].p == p){
-      pd = &Process[x];
-      break;
-    }
-  }
-  return pd;
-}
 
 void Task_Resume(PID p){
 	processDescriptor* pd;
@@ -594,6 +587,10 @@ void Task_Resume(PID p){
 		pd->request = RESUME;
     Enter_Kernel();
 	}
+}
+
+void Task_Yield(){
+  //Yield to Priority Tasks
 }
 
 int Task_Get_Arg(PID p){
@@ -607,41 +604,61 @@ int Task_Get_Arg(PID p){
 	}
 }
 
-void Task_Yield(){
-	//Yield to Priority Tasks
+processDescriptor* get_Task(PID p){
+  int x;
+  processDescriptor* pd = NULL;
+  for (x=0;x<MAXPROCESS;x++){
+    if (Process[x].p == p){
+      pd = &Process[x];
+      break;
+    }
+  }
+  return pd;
 }
 
-void Mutex_Lock(mutex* m, processDescriptor* input_process){
+void Mutex_Lock(mutex* m, processDescriptor* caller){
 	
 	mutex_node newNode;
+	newNode.task = caller;
 	
-	
-	newNode.task = input_process;
-	
-	if (m->locked != true) // if the mutex is unlocked
-	{
+	if (m->locked != true) {                  // If the mutex is unlocked
+
+    Disable_Interrupt();
 		m->owner = m->queue->head;
 		m->locked = true;
 		m->queue->head = m->queue->head->next;
-	}
-	else{
+    Enable_Interrupt();
+
+	} else if (m->owner == caller) {         // Owner locking a second time
+
+    m->count += 1;
+
+  } else {                                 // A second task is trying to lock the mutex
 		
-		
+    Disable_Interrupt();
+    caller->request = SUSPEND;
+    caller->state = BLOCKED;
+    enqueue_mutex(&m->mutex_queue, &newNode);
+    Enable_Interrupt();
+    
 		//enqueue_mutex(&m->queue, &newNode);
-		
 		//enqueue(&m->mutex_queue,owner);
 		//owner->state = BLOCKED;
-		
-	}
+  }
 	
 }
 
-void Mutex_Unlock(mutex* m){
+// Need to include recursive locks/unlocks
+// Should be conditional on WHO is locking/unlocking
+void Mutex_Unlock(mutex* m, processDescriptor* caller){
+
+  if (m->owner == caller && m->count > 0){
+
+    m->count -= 1;
+
+  } else if  (m->queue->head != NULL) {    // The queue has tasks waiting
 	
-	if (m->queue->head != NULL) // the queue has something on it
-	
-	{
-		 m->owner = dequeue(&m->queue);
+		m->owner = dequeue(&m->queue);
 		m->locked = true;
 		m->owner->state = READY;
 		

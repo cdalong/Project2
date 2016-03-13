@@ -20,10 +20,10 @@
 
 
 /* locations of well-known registers */
-SREG  = 0x3F
+SREG   = 0x3F
 SPH    = 0x3E
 SPL    = 0x3D
-EIND = 0x3C;
+EIND   = 0x3C
 /*
   * MACROS
   */
