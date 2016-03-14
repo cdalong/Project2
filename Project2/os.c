@@ -42,7 +42,8 @@ typedef unsigned int EVENT;      // always non-zero if it is valid
 typedef unsigned char PRIORITY;
 const unsigned int PT;
 const unsigned int PPP[]; 
-static uint8_t slot_task_finished = 0; // indicates if peridoic task has run
+static uint8_t slot_task_finished = 0; 
+int interrupt_handles = 0;// indicates if peridoic task has run
 
 
 
@@ -490,16 +491,7 @@ void Update_Period_Queue(){
 	}
 	
 }
-sleep_node* dequeue_sleep (sleep_queue* input_queue) {
-  sleep_node* ready_task = input_queue->head;
 
-  if (ready_task != NULL){
-    input_queue->head = input_queue->head->next;
-    ready_task->next = NULL;
-  }
-
-  return ready_task;
-}
 
 /* ****************************************** TODO ****************************************************
  * We need to add a check for the suspension flag, which would prevent it from being selected to run
@@ -569,7 +561,7 @@ static void Dispatch()
   */
 static void Next_Kernel_Request() 
 {
-   Dispatch();  /* select a new task to run */
+   new_dispatch();  /* select a new task to run */
 
    while(1) {
        Cp->request = NONE;              // Clear its request
@@ -587,7 +579,7 @@ static void Next_Kernel_Request()
        case NEXT:
 	     case NONE:                      // Could be caused by timer interrupt
           Cp->state = READY;
-          Dispatch();
+          new_dispatch();
           break;
 		   case SUSPEND:
     			Cp->susp = 1;
@@ -626,7 +618,7 @@ static void Next_Kernel_Request()
           }
 
           /* Need to dequeue from any task queues */
-          Dispatch();
+          new_dispatch();
        default:
          
           break;                     // PROBLEM
