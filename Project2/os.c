@@ -136,7 +136,9 @@ typedef enum {
 typedef struct processDescriptor {
    unsigned char *sp;                   // Stack pointer into the "workSpace"
    unsigned char workSpace[WORKSPACE];  // Memory available to the process
-   TICK ticks;                          // Ticks remaining to sleep
+   TICK ticks;       
+   TICK period;   
+   TICK remaining; // Ticks remaining to sleep
    PROCESS_STATES state;                // Current state of process
    PRIORITY original;                   // Priority of created function
    PRIORITY inherited;                  // Inherited priority (to counter priority inversion)
@@ -187,7 +189,7 @@ typedef struct mutex_queue{
 typedef struct mutex {
 	
 	bool locked;                     // Indicates whether mutex is locked or not
-  int count;                       // Indicates the times it has been locked by owner (for recursive locks)
+  	int count;                       // Indicates the times it has been locked by owner (for recursive locks)
 	processDescriptor* owner;        // Task that locked the mutex
 	mutex_queue* queue;              // Queue of waiting tasks
 	//mutex_node * next;
@@ -206,6 +208,7 @@ static queue_t system_tasks;              // system task queue
 static sleep_queue sleeping_tasks;        // sleeping task queue
 static queue_t event_queue;               // tasks waiting on events
 static volatile uint8_t ticks_remaining;  // time remaining in current slot?
+static queue_t periodic_tasks;  // time remaining in current slot?
 
 /** 
   * Since this is a "full-served" model, the kernel is executing using its own
@@ -241,6 +244,23 @@ volatile static unsigned int Tasks;
  */
 
 /*Chane to include Priority*/
+// Adds task to the queue, UNORDERED
+static void enqueue(queue_t* input_queue, processDescriptor* input_process){
+  
+  input_process->next = NULL;
+
+  if(input_queue->head == NULL){              // If queue is empty
+
+    input_queue->head = input_process;        // Node becomes head and tail
+    input_queue->tail = input_process;
+
+  } else {
+    
+    input_queue->tail->next = input_process;  // Else new node becomes tail
+    input_queue->tail = input_process;
+    
+  }
+}
 
 void Kernel_Create_Task_At(  processDescriptor *p, voidfuncptr f ) 
 {   
@@ -280,7 +300,21 @@ void Kernel_Create_Task_At(  processDescriptor *p, voidfuncptr f )
 
    /*----END of NEW CODE----*/
 
-   p->state = READY;
+   
+   
+    if (p->original == 0)
+    {
+	    enqueue(&system_tasks, p);
+    }
+    else if (p->original == 1)
+    {
+	    enqueue(&periodic_tasks, p);
+    }
+    else if (p->original == 2)
+    {
+	    enqueue(&Round_Robin, p);
+    }
+    p->state = READY;
 }
 
 /**
@@ -303,23 +337,6 @@ static void Kernel_Create_Task( voidfuncptr f )
 
 }
 
-// Adds task to the queue, UNORDERED
-static void enqueue(queue_t* input_queue, processDescriptor* input_process){
-  
-  input_process->next = NULL;
-
-  if(input_queue->head == NULL){              // If queue is empty
-
-    input_queue->head = input_process;        // Node becomes head and tail
-    input_queue->tail = input_process;
-
-  } else {
-    
-    input_queue->tail->next = input_process;  // Else new node becomes tail
-    input_queue->tail = input_process;
-    
-  }
-}
 
 // Removes head of the queue
 static processDescriptor* dequeue(queue_t* input_queue){
@@ -339,6 +356,33 @@ static void enqueue_mutex(mutex_queue* input_queue, mutex_node* input_node){
 	//sort by priority so I don't have to do it later.
 	mutex_node* tmp;
 	mutex_node* tmp2;
+	
+	if (input_queue->head == NULL)
+	{
+		input_queue->head = input_node;
+		input_queue->tail = input_node;
+	}
+	else{
+		
+		for(tmp = input_queue->head; tmp->next != NULL; tmp=tmp->next){
+			
+			if(tmp->next->task->original < input_node->task->original){
+				//find place in queue to put the damn thing
+				
+				tmp2 = tmp->next;
+				
+				tmp ->next = input_node;
+				input_node->next = tmp2;
+			}
+			
+		}
+		
+		
+		
+		
+		
+		
+	}
 	
 }
 
@@ -401,21 +445,86 @@ sleep_node* dequeue_sleep (sleep_queue* input_queue) {
 
   return ready_task;
 }
+void Update_Sleep_Queue(){
+	
+	int tasksRemain = 1;										// Condition variable
+	sleep_node sleeping_task;
+	sleeping_task.task = sleeping_tasks.head->task; //handle the sleeping tasks during dispatch
+	
+	if (sleeping_task.task != NULL){
+		while (tasksRemain){
+			sleeping_task.task->ticks -= interrupt_handles;
+			
+			if (sleeping_task.task->ticks <= 0){
+				Disable_Interrupt();
+				sleeping_task.task->request = RESUME;
+				Enter_Kernel();
+				break;
+			}
+			
+			if (sleeping_task.next) {
+				sleeping_task = *sleeping_task.next;
+				} else {
+				tasksRemain = 0;									// We're done
+			}
+		}
+	}
+	
+	
+}
+void Update_Period_Queue(){
+	
+	processDescriptor* head;
+	
+	for (head = periodic_tasks.head; head->next != NULL; head = head->next)
+	{
+		head ->remaining -= interrupt_handles;
+		
+		if (head ->remaining <= 0)
+		{
+			head ->state = READY;
+			head->remaining = head->period;
+			
+		}
+		
+	}
+	
+}
+sleep_node* dequeue_sleep (sleep_queue* input_queue) {
+  sleep_node* ready_task = input_queue->head;
+
+  if (ready_task != NULL){
+    input_queue->head = input_queue->head->next;
+    ready_task->next = NULL;
+  }
+
+  return ready_task;
+}
 
 /* ****************************************** TODO ****************************************************
  * We need to add a check for the suspension flag, which would prevent it from being selected to run
  */
 static void new_dispatch()
 {
+	if (interrupt_handles > 0)
+	{
+		
+		Update_Sleep_Queue();
+		Update_Period_Queue();
+		interrupt_handles = 0;
+	}
+		
+	// What about tasks that are not ready?
 	if (Cp->state != RUNNING || Cp == idle_task ){
 		
 		if (system_tasks.head != NULL) {
 
 			Cp = dequeue(&system_tasks);
 
-		} else if (!slot_task_finished && PT > 0 ) { // There is some more to add here, but I don't know what they're doing
+		} else if (periodic_tasks.head != NULL) { // There is some more to add here, but I don't know what they're doing
 			
       // Current task equals something from the PPP array
+			Cp = dequeue(&periodic_tasks);
 			
 		} else if(Round_Robin.head != NULL) {
 			
@@ -429,16 +538,16 @@ static void new_dispatch()
 	Cp->state = RUNNING;
 }
 
-
 /**
   * This internal kernel function is a part of the "scheduler". It chooses the 
   * next task to run, i.e., Cp.
   */
+  /*
 static void Dispatch()
 {
      /* find the next READY task
        * Note: if there is no READY task, then this will loop forever!.
-       */
+       
    while(Process[NextP].state != READY) {
       NextP = (NextP + 1) % MAXPROCESS;
    }
@@ -449,7 +558,7 @@ static void Dispatch()
 
    NextP = (NextP + 1) % MAXPROCESS;
 }
-
+*/
 /**
   * This internal kernel function is the "main" driving loop of this full-served
   * model architecture. Basically, on OS_Start(), the kernel repeatedly
@@ -727,7 +836,7 @@ void Mutex_Unlock(mutex* m, processDescriptor* caller){
 	}
 }
 
-void Inherit_Priority(mutex m){
+void Inherit_Priority(mutex* m){
 	
 	//find the maximum priority in the queue
 
@@ -749,28 +858,9 @@ void Task_Sleep(TICK t){
 
 // System timer that interrupts every 10 ms
 void TIMER3_COMPA_vect(void){
-  int tasksRemain = 1;										// Condition variable
-  sleep_node sleeping_task;
-  sleeping_task.task = sleeping_tasks.head->task;
-  
-  if (sleeping_task.task != NULL){
-    while (tasksRemain){						
-      sleeping_task.task->ticks -= 1;
-      
-      if (sleeping_task.task->ticks == 0){
-        Disable_Interrupt();
-        sleeping_task.task->request = RESUME;
-        Enter_Kernel();
-        break;
-      }
-	  
-  	  if (sleeping_task.next) {
-  		 sleeping_task = *sleeping_task.next;
-  	  } else {
-  		  tasksRemain = 0;									// We're done
-      }
-    }
-  }
+  Disable_Interrupt();
+  interrupt_handles += 1;
+  Enable_Interrupt();
 }
 
 
