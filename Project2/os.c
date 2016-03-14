@@ -1,10 +1,10 @@
 
 #include <string.h>
 //#include "os.h"
-
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#
+#include <assert.h>
+
 /**
  * \file active.c
  * \brief A Skeleton Implementation of an RTOS
@@ -101,7 +101,6 @@ typedef enum process_states
    READY, 
    RUNNING,
    BLOCKED,
-   SUSPENDED,
    SUSP_BLOCKED,
    SUSP_READY 
 } PROCESS_STATES;
@@ -116,6 +115,8 @@ typedef enum kernel_request_type
    NEXT,
    SLEEP,
    SUSPEND,
+   BLOCK,
+   UNBLOCK,
    GET_ARG,
    RESUME,
    YIELD,
@@ -142,7 +143,7 @@ typedef struct processDescriptor {
    voidfuncptr  code;                   // Function to be executed as a task
    KERNEL_REQUEST_TYPE request;         // State change request to be conducted by kernel when appropriate
    PID p;                               // Process identification number
-   struct processDescriptor* next;             // Next process holding this task
+   struct processDescriptor* next;      // Next process holding this task
    int PID;
    int susp;                            //Boolean for indicating suspension
    int arg;
@@ -302,6 +303,7 @@ static void Kernel_Create_Task( voidfuncptr f )
 
 }
 
+// Adds task to the queue, UNORDERED
 static void enqueue(queue_t* input_queue, processDescriptor* input_process){
   
   input_process->next = NULL;
@@ -313,22 +315,23 @@ static void enqueue(queue_t* input_queue, processDescriptor* input_process){
 
   } else {
     
-    input_queue->tail->next = input_process; // Else new node becomes tail
+    input_queue->tail->next = input_process;  // Else new node becomes tail
     input_queue->tail = input_process;
     
   }
 }
 
+// Removes head of the queue
 static processDescriptor* dequeue(queue_t* input_queue){
-  processDescriptor* processpointer = input_queue->head;
+  processDescriptor* next_task = input_queue->head;
   
   if(input_queue->head != NULL) {
 
     input_queue->head = input_queue->head->next;
-    processpointer->next = NULL;
+    next_task->next = NULL;
     
   }
-  return processpointer;
+  return next_task;
 }
 
 static void enqueue_mutex(mutex_queue* input_queue, mutex_node* input_node){
@@ -343,7 +346,6 @@ static void enqueue_mutex(mutex_queue* input_queue, mutex_node* input_node){
 static void enqueue_sleep(sleep_queue* input_queue, sleep_node* input_sleepnode){
 	
 	sleep_node* tmp = NULL;
-	sleep_node* tmp2 = NULL;
 	TICK before;
 	TICK after;
 	
@@ -387,6 +389,17 @@ static void enqueue_sleep(sleep_queue* input_queue, sleep_node* input_sleepnode)
     input_queue->tail->next = input_sleepnode;
     input_queue->tail = input_sleepnode; 
 	}		
+}
+
+sleep_node* dequeue_sleep (sleep_queue* input_queue) {
+  sleep_node* ready_task = input_queue->head;
+
+  if (ready_task != NULL){
+    input_queue->head = input_queue->head->next;
+    ready_task->next = NULL;
+  }
+
+  return ready_task;
 }
 
 /* ****************************************** TODO ****************************************************
@@ -470,16 +483,41 @@ static void Next_Kernel_Request()
 		   case SUSPEND:
     			Cp->susp = 1;
     			if (Cp->state == RUNNING){
-    				Cp->state = READY;
-    			}
+    				Cp->state = SUSP_READY;
+    			} else if (Cp->state == BLOCKED) {
+            Cp->state = SUSP_BLOCKED;
+          }
           break;
         case RESUME:
           Cp->susp = 0;
+          if (Cp->state == SUSP_READY) {
+            Cp->state = READY;
+          } else if (Cp->state == SUSP_BLOCKED) {
+            Cp->state = BLOCKED;
+          }
           break;
-       case TERMINATE:
+        case BLOCK:
+          if (Cp->state == SUSP_READY){
+            Cp->state = SUSP_BLOCKED;
+          } else {
+            Cp->state = BLOCKED;
+          }
+          break;
+        case UNBLOCK:
+          if (Cp->state == SUSP_BLOCKED){
+            Cp->state = SUSP_READY;
+          } else {
+            Cp->state = READY;
+          }
+          break;
+        case TERMINATE:
           Cp->state = DEAD;           // Deallocate all resources used by this task
+          if (Cp->ticks > 0) {
+            /* Need to dequeue from sleep queue */
+          }
+
+          /* Need to dequeue from any task queues */
           Dispatch();
-          break;
        default:
          
           break;                     // PROBLEM
@@ -619,8 +657,6 @@ int Task_Get_Arg(PID p){
 	}
 }
 
-
-
 void Mutex_Lock(mutex* m, processDescriptor* caller){
 	
 	mutex_node newNode;
@@ -628,55 +664,67 @@ void Mutex_Lock(mutex* m, processDescriptor* caller){
 	
 	if (m->locked != true) {                  // If the mutex is unlocked
 
+    assert(!m->owner);                      // Assert mutex has no owner
     Disable_Interrupt();
 		m->owner = m->queue->head->task;
 		m->locked = true;
-		m->queue->head = m->queue->head->next;
+		m->queue->head = m->queue->head->next;  /* TODO Dequeue from mutex queue */
     Enable_Interrupt();
 
 	} else if (m->owner == caller) {         // Owner locking a second time
 
-    m->count += 1;
-
-  } else {                                 // A second task is trying to lock the mutex
-		
     Disable_Interrupt();
-    caller->request = SUSPEND;
-    caller->state = BLOCKED;
-    enqueue_mutex(&m->queue, &newNode);
+    m->count += 1;
+    Enable_Interrupt();
+
+  } else if (m->owner->state == DEAD) {    // Owner was terminated before unlocking mutex
+
+    Disable_Interrupt();
+    m->owner = m->queue->head->task;
+    m->count = 0;
+    m->locked = true;
+    m->queue->head = m->queue->head->next; /* TODO Dequeue from mutex queue */
     Enable_Interrupt();
     
-		//enqueue_mutex(&m->queue, &newNode);
-		//enqueue(&m->mutex_queue,owner);
-		//owner->state = BLOCKED;
+  } else {                                 // New task trying to acquire claimed lock
+		  
+    Disable_Interrupt();
+    caller->request = BLOCK;
+    enqueue_mutex(&m->queue, &newNode);    /* This should maybe be a signal? */
+    Enter_Kernel();
+
   }
-	
 }
 
 // Need to include recursive locks/unlocks
 // Should be conditional on WHO is locking/unlocking
 void Mutex_Unlock(mutex* m, processDescriptor* caller){
 
-  if (m->owner == caller && m->count > 0){
+  // Recursive unlock
+  if (m->owner == caller && m->count > 1){  
 
+    Disable_Interrupt();
     m->count -= 1;
+    Enable_Interrupt();
 
-  } else if  (m->queue->head != NULL) {    // The queue has tasks waiting
-	
+  // The queue has tasks waiting
+  } else if (m->owner == caller && m->queue->head != NULL) {
+
+    Disable_Interrupt();
 		m->owner = dequeue(&m->queue);
-		m->locked = true;
-		m->owner->state = READY;
+		m->locked = true;                           // Should have already been locked, but safe measure
+		m->owner->request = UNBLOCK;
+		Enter_Kernel();
 		
-		
-	}
-	else{
-		
+  // Queue is empty
+	} else if (m->owner == caller) {
+
+    Disable_Interrupt();
 		m->owner = NULL;
 		m->locked = false;
+    Enable_Interrupt();
+
 	}
-	
-	
-	
 }
 
 void Inherit_Priority(mutex m){
