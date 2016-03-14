@@ -306,14 +306,14 @@ static void enqueue(queue_t* input_queue, processDescriptor* input_process){
   
   input_process->next = NULL;
 
-  if(input_queue->head == NULL){
+  if(input_queue->head == NULL){              // If queue is empty
 
-    input_queue->head = input_process;
+    input_queue->head = input_process;        // Node becomes head and tail
     input_queue->tail = input_process;
 
   } else {
     
-    input_queue->tail->next = input_process;
+    input_queue->tail->next = input_process; // Else new node becomes tail
     input_queue->tail = input_process;
     
   }
@@ -347,41 +347,45 @@ static void enqueue_sleep(sleep_queue* input_queue, sleep_node* input_sleepnode)
 	TICK before;
 	TICK after;
 	
-	if(input_queue->head == NULL){                     // If queue is empty
+  // If queue is empty
+	if(input_queue->head == NULL){
 		
 		input_queue->head = input_sleepnode;             // New task becomes head and tail
 		input_queue->tail = input_sleepnode;
-		PORTL |= (1<< DDL1);
+		PORTL |= (1 << DDL1);
+    return;
+	}                                                
 
-	} else {                                           // If adding a task to a pre-existing queue
-		
-		before = input_queue->head->task->ticks;
-		after = input_queue->head->next->task->ticks;
-		
-		if (input_sleepnode->task->ticks > before){      /* TODO - Shouldn't the highest be last? */
-  		tmp = input_queue->head;
-			input_queue->head = input_sleepnode;
-			input_sleepnode->next = tmp;
+  // If adding a task to a pre-existing queue
+	before = input_queue->head->task->ticks;
+	
+	if (input_sleepnode->task->ticks < before) {     // If new node has less ticks than head, becomes new head
 
-		} else {
+    input_sleepnode->next = input_queue->head;
+    input_queue->head = input_sleepnode;
 
-			for(tmp = input_queue->head; tmp->next != NULL; tmp=tmp->next){
-				before = after;
-				after = tmp->task->next->ticks;
-			}
-				
-			if (input_sleepnode->task->ticks >= before && input_sleepnode->task->ticks  <= after) {
-				tmp2 = tmp;
-				tmp->next = input_sleepnode;
-				input_sleepnode->next = tmp2;
-				
-			} else if (tmp->next == NULL && tmp->task->ticks <= input_sleepnode->task->ticks) {
-					
-					input_queue->tail->next = input_sleepnode;
-					input_queue->tail = input_sleepnode;
-					
-			}	
-		}
+	} else {                                         // Need to search queue for correct placement
+
+    tmp = input_queue->head;
+
+    while (tmp->next != NULL) {
+      after = tmp->next->task->ticks;
+
+      if (input_sleepnode->task->ticks >= before && input_sleepnode->task->ticks <= after) { // Found placement, insert node
+
+          input_sleepnode->next = tmp->next;
+          tmp->next = input_sleepnode;
+          return;
+      }
+
+      before = after;                             // Before = tmp->next->ticks
+      tmp = tmp->next;                            // Before = tmp->ticks
+
+    }
+
+    // Add to end of queue
+    input_queue->tail->next = input_sleepnode;
+    input_queue->tail = input_sleepnode; 
 	}		
 }
 
@@ -578,6 +582,17 @@ void Task_Suspend(PID p)
   }
 }
 
+processDescriptor* get_Task(PID p){
+	int x;
+	processDescriptor* pd = NULL;
+	for (x=0;x<MAXPROCESS;x++){
+		if (Process[x].p == p){
+			pd = &Process[x];
+			break;
+		}
+	}
+	return pd;
+}
 
 void Task_Resume(PID p){
 	processDescriptor* pd;
@@ -604,17 +619,7 @@ int Task_Get_Arg(PID p){
 	}
 }
 
-processDescriptor* get_Task(PID p){
-  int x;
-  processDescriptor* pd = NULL;
-  for (x=0;x<MAXPROCESS;x++){
-    if (Process[x].p == p){
-      pd = &Process[x];
-      break;
-    }
-  }
-  return pd;
-}
+
 
 void Mutex_Lock(mutex* m, processDescriptor* caller){
 	
@@ -624,7 +629,7 @@ void Mutex_Lock(mutex* m, processDescriptor* caller){
 	if (m->locked != true) {                  // If the mutex is unlocked
 
     Disable_Interrupt();
-		m->owner = m->queue->head;
+		m->owner = m->queue->head->task;
 		m->locked = true;
 		m->queue->head = m->queue->head->next;
     Enable_Interrupt();
@@ -638,7 +643,7 @@ void Mutex_Lock(mutex* m, processDescriptor* caller){
     Disable_Interrupt();
     caller->request = SUSPEND;
     caller->state = BLOCKED;
-    enqueue_mutex(&m->mutex_queue, &newNode);
+    enqueue_mutex(&m->queue, &newNode);
     Enable_Interrupt();
     
 		//enqueue_mutex(&m->queue, &newNode);
@@ -698,7 +703,7 @@ void Task_Sleep(TICK t){
 void TIMER3_COMPA_vect(void){
   int tasksRemain = 1;										// Condition variable
   sleep_node sleeping_task;
-  sleeping_task.task = &sleeping_tasks.head->task;
+  sleeping_task.task = sleeping_tasks.head->task;
   
   if (sleeping_task.task != NULL){
     while (tasksRemain){						
